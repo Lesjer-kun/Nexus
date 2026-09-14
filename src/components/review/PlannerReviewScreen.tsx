@@ -3,20 +3,21 @@ import { useScheduleLinking } from '../../hooks/useScheduleLinking';
 import { useMobileView } from '../../context/MobileViewContext';
 import { ConfidenceGauge } from '../common/ConfidenceGauge';
 import { DisciplineBadge } from '../common/DisciplineBadge';
-import { StatusBadge, GovernanceBadge } from '../common/StatusBadge';
+import { GovernanceBadge } from '../common/StatusBadge';
 import { EvidenceCard } from '../common/EvidenceCard';
+import { ScreenHeader } from '../layout/ScreenHeader';
 import {
-  CheckCircle,
-  Edit3,
-  XCircle,
-  HelpCircle,
-  Clock,
-  ShieldCheck,
   AlertTriangle,
-  Layers,
   ArrowLeft,
-  ListFilter,
+  CheckCircle,
+  Clock,
+  Edit3,
   Eye,
+  HelpCircle,
+  Layers,
+  ListFilter,
+  ShieldCheck,
+  XCircle,
 } from 'lucide-react';
 
 export const PlannerReviewScreen: React.FC = () => {
@@ -45,7 +46,7 @@ export const PlannerReviewScreen: React.FC = () => {
   const [clarificationQuery, setClarificationQuery] = useState('');
   const [isClarifyModalOpen, setIsClarifyModalOpen] = useState(false);
 
-  const handleSelectEvent = (ev: typeof pendingEvents[0]) => {
+  const handleSelectEvent = (ev: (typeof pendingEvents)[0]) => {
     selectEvent(ev);
     setIsEditingCorrection(false);
     if (isMobileView) {
@@ -60,9 +61,7 @@ export const PlannerReviewScreen: React.FC = () => {
       selectedEvent.selectedActivityId,
       'Approved as authoritative execution update by Planner.'
     );
-    if (isMobileView) {
-      setMobileTab('queue');
-    }
+    if (isMobileView) setMobileTab('queue');
   };
 
   const handleCorrectSubmit = async () => {
@@ -74,9 +73,7 @@ export const PlannerReviewScreen: React.FC = () => {
       correctionNotes || 'Planner re-routed activity to correct WBS node.'
     );
     setIsEditingCorrection(false);
-    if (isMobileView) {
-      setMobileTab('queue');
-    }
+    if (isMobileView) setMobileTab('queue');
   };
 
   const handleRejectSubmit = async () => {
@@ -84,9 +81,7 @@ export const PlannerReviewScreen: React.FC = () => {
     await rejectEvent(selectedEvent.id, rejectReason);
     setIsRejectModalOpen(false);
     setRejectReason('');
-    if (isMobileView) {
-      setMobileTab('queue');
-    }
+    if (isMobileView) setMobileTab('queue');
   };
 
   const handleClarifySubmit = async () => {
@@ -94,40 +89,33 @@ export const PlannerReviewScreen: React.FC = () => {
     await requestClarification(selectedEvent.id, clarificationQuery);
     setIsClarifyModalOpen(false);
     setClarificationQuery('');
-    if (isMobileView) {
-      setMobileTab('queue');
-    }
+    if (isMobileView) setMobileTab('queue');
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full p-8 text-slate-500">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
-        Loading Governance Queue...
+      <div className="flex h-full items-center justify-center p-8 text-muted">
+        <div className="mr-2 h-6 w-6 animate-spin rounded-full border-2 border-ember border-t-transparent" />
+        Loading governance queue…
       </div>
     );
   }
 
-  // Render Queue List Component
   const renderQueueList = () => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-          <ListFilter className="w-3.5 h-3.5 text-blue-600" />
-          <span>Pending Ingestion Queue</span>
+        <h3 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink">
+          <ListFilter className="h-3.5 w-3.5 text-ember" />
+          Queue
         </h3>
-        <span className="text-[11px] text-slate-500 font-mono">
-          {pendingEvents.length} items
-        </span>
+        <span className="font-mono text-[11px] text-muted">{pendingEvents.length} items</span>
       </div>
 
       {pendingEvents.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 text-center text-slate-500 space-y-2">
-          <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
-          <div className="text-xs font-semibold text-slate-800">All Queue Items Verified</div>
-          <p className="text-[11px] text-slate-500">
-            No outstanding unlinked field events requiring human planner governance.
-          </p>
+        <div className="space-y-2 rounded-xl border border-line bg-panel p-8 text-center text-muted">
+          <CheckCircle className="mx-auto h-8 w-8 text-emerald-500" />
+          <div className="text-xs font-semibold text-ink">Queue clear</div>
+          <p className="text-[11px]">No field events waiting for planner governance.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -139,25 +127,21 @@ export const PlannerReviewScreen: React.FC = () => {
                 id={`queue-item-${ev.id}`}
                 type="button"
                 onClick={() => handleSelectEvent(ev)}
-                className={`w-full text-left p-3 rounded-xl border transition-all text-xs flex flex-col gap-2 ${
+                className={`flex w-full flex-col gap-2 rounded-xl border p-3 text-left text-xs transition-all ${
                   isSelected && !isMobileView
-                    ? 'bg-blue-50/70 border-blue-400 shadow-xs ring-1 ring-blue-400'
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                    ? 'border-ember/50 bg-orange-50/60 ring-1 ring-ember/30'
+                    : 'border-line bg-panel hover:border-ember/30'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-bold text-slate-900">{ev.eventNumber}</span>
+                  <span className="font-mono font-bold text-ink">{ev.eventNumber}</span>
                   <GovernanceBadge status={ev.governanceStatus} />
                 </div>
-
-                <p className="text-slate-800 font-medium line-clamp-2 italic">
-                  "{ev.rawInput}"
-                </p>
-
-                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                <p className="line-clamp-2 font-medium text-ink-2 italic">“{ev.rawInput}”</p>
+                <div className="flex items-center justify-between border-t border-line pt-1 text-[11px] text-muted">
                   <span>{ev.reporterName}</span>
-                  <span className="font-mono font-bold text-emerald-700">
-                    Match: {(ev.matchingConfidence * 100).toFixed(0)}%
+                  <span className="font-mono font-bold text-emerald-800">
+                    {(ev.matchingConfidence * 100).toFixed(0)}%
                   </span>
                 </div>
               </button>
@@ -168,220 +152,158 @@ export const PlannerReviewScreen: React.FC = () => {
     </div>
   );
 
-  // Render Detailed Inspection Component
   const renderDetailInspection = () => {
     if (!selectedEvent) {
       return (
-        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500">
-          Select an execution event from the queue to inspect candidate matches and make governance decisions.
+        <div className="rounded-xl border border-dashed border-line bg-panel p-8 text-center text-sm text-muted">
+          Select a queue item to inspect matches and decide.
         </div>
       );
     }
 
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-3.5 sm:p-4 shadow-xs space-y-3.5">
-        {/* Mobile Navigation Back Button */}
+      <div className="space-y-3.5 rounded-xl border border-line bg-panel p-3.5 sm:p-4">
         {isMobileView && (
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="flex items-center justify-between border-b border-line pb-2">
             <button
               type="button"
               onClick={() => setMobileTab('queue')}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-ember hover:text-ember-dark"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Queue ({pendingEvents.length})</span>
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Queue ({pendingEvents.length})
             </button>
-            <span className="text-[11px] font-mono text-slate-500">
-              Inspection Mode
-            </span>
+            <span className="font-mono text-[11px] text-muted">Inspect</span>
           </div>
         )}
 
-        {/* Event Meta Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-slate-100 pb-3">
+        <div className="flex flex-col justify-between gap-2 border-b border-line pb-3 sm:flex-row sm:items-start">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs sm:text-sm font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              <span className="rounded border border-ember/20 bg-orange-50 px-2 py-0.5 font-mono text-xs font-bold text-ember-dark">
                 {selectedEvent.eventNumber}
               </span>
-              <span className="text-[11px] sm:text-xs text-slate-500 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+              <span className="flex items-center gap-1 text-[11px] text-muted">
+                <Clock className="h-3 w-3" />
                 {new Date(selectedEvent.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-1">
-              {selectedEvent.activityDescription || 'Field Event Review'}
+            <h3 className="mt-1 text-sm font-bold text-ink sm:text-base">
+              {selectedEvent.activityDescription || 'Field event review'}
             </h3>
-            <div className="text-xs text-slate-600 mt-0.5">
-              Reported by: <strong>{selectedEvent.reporterName}</strong> ({selectedEvent.reporterRole})
+            <div className="mt-0.5 text-xs text-muted">
+              {selectedEvent.reporterName} · {selectedEvent.reporterRole}
             </div>
           </div>
-
-          <div className="flex items-center sm:flex-col sm:items-end justify-between gap-1 pt-1 sm:pt-0">
+          <div className="flex items-center justify-between gap-1 pt-1 sm:flex-col sm:items-end sm:pt-0">
             <GovernanceBadge status={selectedEvent.governanceStatus} />
-            <span className="text-[10px] text-slate-500 font-mono">
-              Mode: {selectedEvent.inputMode.toUpperCase()}
-            </span>
+            <span className="font-mono text-[10px] text-muted">{selectedEvent.inputMode.toUpperCase()}</span>
           </div>
         </div>
 
-        {/* Original Raw Field Input */}
-        <div className="bg-slate-50 p-2.5 sm:p-3 rounded-lg border border-slate-200">
-          <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            Verbatim Field Supervisor Input
-          </div>
-          <p className="text-xs text-slate-800 font-medium italic">
-            "{selectedEvent.rawInput}"
-          </p>
+        <div className="rounded-lg border border-line bg-paper p-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Verbatim input</div>
+          <p className="text-xs font-medium text-ink italic">“{selectedEvent.rawInput}”</p>
           {selectedEvent.notes && (
-            <p className="text-[11px] text-slate-600 mt-1">
-              <strong>Field Notes:</strong> {selectedEvent.notes}
+            <p className="mt-1 text-[11px] text-muted">
+              <strong>Notes:</strong> {selectedEvent.notes}
             </p>
           )}
         </div>
 
-        {/* Confidence Metrics Split */}
-        <div className={`gap-3 bg-slate-50/60 p-3 rounded-xl border border-slate-200 ${isMobileView ? 'space-y-3 flex flex-col' : 'grid grid-cols-1 md:grid-cols-2'}`}>
-          <div className="w-full">
-            <ConfidenceGauge
-              score={selectedEvent.matchingConfidence}
-              label="Semantic & Structured Match"
-              showDetails
-            />
-          </div>
-          <div className="w-full">
-            <ConfidenceGauge
-              score={selectedEvent.evidenceConfidence}
-              label="Physical Evidence Support"
-              showDetails
-            />
-          </div>
+        <div
+          className={`rounded-xl border border-line bg-paper p-3 ${
+            isMobileView ? 'flex flex-col space-y-3' : 'grid grid-cols-1 gap-3 md:grid-cols-2'
+          }`}
+        >
+          <ConfidenceGauge score={selectedEvent.matchingConfidence} label="Semantic & structured match" showDetails />
+          <ConfidenceGauge score={selectedEvent.evidenceConfidence} label="Physical evidence" showDetails />
         </div>
 
-        {/* Candidate L5/L6 Schedule Matching Disambiguation */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
-              <span>L5/L6 Candidate Activity Disambiguation</span>
-            </h4>
-          </div>
-
-          <div className="space-y-2">
-            {selectedEvent.candidateMatches.map((cand, idx) => {
-              const isTopMatch = idx === 0;
-              return (
-                <div
-                  key={cand.activityId}
-                  className={`p-3 rounded-lg border text-xs space-y-2 ${
-                    isTopMatch
-                      ? 'bg-blue-50/40 border-blue-300 ring-1 ring-blue-200'
-                      : 'bg-white border-slate-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-mono font-bold text-blue-800 bg-blue-100/80 px-1.5 py-0.5 rounded text-[11px]">
-                          {cand.wbsCode}
-                        </span>
-                        <span className="font-semibold text-slate-900">{cand.activityName}</span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                        <DisciplineBadge discipline={cand.discipline} />
-                        <span className="text-[11px] text-slate-600">
-                          Location: <strong>{cand.location}</strong>
-                        </span>
-                        {cand.equipmentTag && (
-                          <span className="text-[11px] text-slate-500 font-mono">
-                            Tag: {cand.equipmentTag}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {(cand.overallConfidence * 100).toFixed(0)}% Match
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Signal Breakdown Pills */}
-                  <div className="flex flex-wrap gap-1 text-[10px] text-slate-600 bg-slate-100/80 p-1.5 rounded font-mono">
-                    <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                      Semantic: {(cand.scoreBreakdown.semantic * 100).toFixed(0)}%
-                    </span>
-                    <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                      Location: {(cand.scoreBreakdown.location * 100).toFixed(0)}%
-                    </span>
-                    <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                      Discipline: {(cand.scoreBreakdown.discipline * 100).toFixed(0)}%
-                    </span>
-                    <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                      Window: {(cand.scoreBreakdown.scheduleWindow * 100).toFixed(0)}%
-                    </span>
-                    <span className="bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                      Equipment: {(cand.scoreBreakdown.equipmentMatch * 100).toFixed(0)}%
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-slate-600 italic">"{cand.rationale}"</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Evidence & Provenance Verification Panel */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
-            <span>Attached Evidence ({selectedEvent.evidenceList.length})</span>
-            <span className="text-[11px] text-slate-500 font-normal">
-              EXIF & Hash Verified
-            </span>
+          <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink">
+            <Layers className="h-3.5 w-3.5 text-ember" />
+            L5/L6 candidates
           </h4>
+          <div className="space-y-2">
+            {selectedEvent.candidateMatches.map((cand, idx) => (
+              <div
+                key={cand.activityId}
+                className={`space-y-2 rounded-lg border p-3 text-xs ${
+                  idx === 0 ? 'border-ember/40 bg-orange-50/40' : 'border-line bg-white'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded bg-paper px-1.5 py-0.5 font-mono text-[11px] font-bold text-ember">
+                        {cand.wbsCode}
+                      </span>
+                      <span className="font-semibold text-ink">{cand.activityName}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <DisciplineBadge discipline={cand.discipline} />
+                      <span className="text-[11px] text-muted">
+                        {cand.location}
+                      </span>
+                      {cand.equipmentTag && (
+                        <span className="font-mono text-[11px] text-muted">Tag: {cand.equipmentTag}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">
+                    {(cand.overallConfidence * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1 rounded bg-paper p-1.5 font-mono text-[10px] text-muted">
+                  {(['semantic', 'location', 'discipline', 'scheduleWindow', 'equipmentMatch'] as const).map((k) => (
+                    <span key={k} className="rounded border border-line bg-white px-1.5 py-0.5">
+                      {k === 'scheduleWindow' ? 'Window' : k === 'equipmentMatch' ? 'Equipment' : k}:{' '}
+                      {(cand.scoreBreakdown[k] * 100).toFixed(0)}%
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted italic">“{cand.rationale}”</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
+        <div className="space-y-2">
+          <h4 className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-ink">
+            <span>Evidence ({selectedEvent.evidenceList.length})</span>
+            <span className="font-normal normal-case tracking-normal text-muted">EXIF & hash checked</span>
+          </h4>
           {selectedEvent.evidenceList.length > 0 ? (
-            <div className={`gap-2 ${isMobileView ? 'space-y-2 flex flex-col' : 'grid grid-cols-1 md:grid-cols-2'}`}>
+            <div className={isMobileView ? 'flex flex-col space-y-2' : 'grid grid-cols-1 gap-2 md:grid-cols-2'}>
               {selectedEvent.evidenceList.map((evid) => (
                 <EvidenceCard key={evid.id} evidence={evid} />
               ))}
             </div>
           ) : (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>
-                Missing physical photo proof. Governance policy recommends requesting clarification before status synchronization.
-              </span>
+            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+              Missing photo proof. Request clarification before syncing status.
             </div>
           )}
         </div>
 
-        {/* Correction Form (if opened) */}
         {isEditingCorrection && (
-          <div className="p-3 bg-blue-50/70 border border-blue-300 rounded-xl space-y-2.5 animate-fadeIn text-xs">
-            <div className="font-bold text-blue-950 flex items-center justify-between">
-              <span>Manual Activity Re-assignment</span>
-              <button
-                type="button"
-                onClick={() => setIsEditingCorrection(false)}
-                className="text-slate-500 hover:text-slate-800 font-bold px-2 py-0.5"
-              >
+          <div className="animate-fadeIn space-y-2.5 rounded-xl border border-ember/30 bg-orange-50/50 p-3 text-xs">
+            <div className="flex items-center justify-between font-bold text-ink">
+              <span>Re-assign activity</span>
+              <button type="button" onClick={() => setIsEditingCorrection(false)} className="px-2 py-0.5 text-muted hover:text-ink">
                 Cancel
               </button>
             </div>
-
             <div>
-              <label className="block text-slate-700 font-medium mb-1">
-                Target L5/L6 Activity in Project Schedule:
-              </label>
+              <label className="mb-1 block font-medium text-ink-2">Target L5/L6 activity</label>
               <select
                 value={selectedActivityForCorrection}
                 onChange={(e) => setSelectedActivityForCorrection(e.target.value)}
-                className="w-full p-2 rounded border border-slate-300 bg-white text-xs font-mono"
+                className="w-full rounded border border-line bg-white p-2 font-mono text-xs"
               >
-                <option value="">-- Select L5/L6 Activity --</option>
+                <option value="">— Select activity —</option>
                 {activities.map((act) => (
                   <option key={act.id} value={act.id}>
                     [{act.wbsCode}] {act.name} ({act.discipline})
@@ -389,48 +311,39 @@ export const PlannerReviewScreen: React.FC = () => {
                 ))}
               </select>
             </div>
-
             <div>
-              <label className="block text-slate-700 font-medium mb-1">
-                Planner Correction Rationale:
-              </label>
+              <label className="mb-1 block font-medium text-ink-2">Correction rationale</label>
               <textarea
                 value={correctionNotes}
                 onChange={(e) => setCorrectionNotes(e.target.value)}
                 placeholder="Explain reason for remapping..."
                 rows={2}
-                className="w-full p-2 rounded border border-slate-300 bg-white text-xs text-slate-900"
+                className="w-full rounded border border-line bg-white p-2 text-xs text-ink"
               />
             </div>
-
             <button
               type="button"
               disabled={!selectedActivityForCorrection || isActionSubmitting}
               onClick={handleCorrectSubmit}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+              className="w-full rounded-lg bg-ember py-2 font-semibold text-white hover:bg-ember-dark disabled:opacity-50"
             >
-              Confirm Correction & Authorize
+              Confirm correction & authorize
             </button>
           </div>
         )}
 
-        {/* Governance Decision Action Bar */}
-        <div className="pt-3 border-t border-slate-200 space-y-2">
-          {/* Row 1: Primary Action Button */}
+        <div className="space-y-2 border-t border-line pt-3">
           <button
             id="gov-approve-btn"
             type="button"
             disabled={isActionSubmitting || !selectedEvent.selectedActivityId}
             onClick={handleApprove}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition-colors shadow-xs disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
           >
-            <CheckCircle className="w-4 h-4" />
-            <span>Approve & Sync Schedule</span>
+            <CheckCircle className="h-4 w-4" />
+            Approve & sync schedule
           </button>
-
-          {/* Row 2: Secondary Actions in a Clean Responsive Row */}
           <div className="grid grid-cols-3 gap-1.5">
-            {/* Correct */}
             <button
               id="gov-correct-btn"
               type="button"
@@ -438,31 +351,27 @@ export const PlannerReviewScreen: React.FC = () => {
                 setSelectedActivityForCorrection(selectedEvent.selectedActivityId || '');
                 setIsEditingCorrection(true);
               }}
-              className="flex items-center justify-center gap-1 py-2 px-2 rounded-lg font-semibold text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors"
+              className="flex items-center justify-center gap-1 rounded-lg border border-line bg-white py-2 text-xs font-semibold text-ink hover:bg-paper"
             >
-              <Edit3 className="w-3.5 h-3.5 shrink-0" />
+              <Edit3 className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Correct</span>
             </button>
-
-            {/* Request Clarification */}
             <button
               id="gov-clarify-btn"
               type="button"
               onClick={() => setIsClarifyModalOpen(true)}
-              className="flex items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-xs text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors"
+              className="flex items-center justify-center gap-1 rounded-lg border border-line bg-white py-2 text-xs font-medium text-ink hover:bg-paper"
             >
-              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+              <HelpCircle className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Clarify</span>
             </button>
-
-            {/* Reject */}
             <button
               id="gov-reject-btn"
               type="button"
               onClick={() => setIsRejectModalOpen(true)}
-              className="flex items-center justify-center gap-1 py-2 px-2 rounded-lg font-medium text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+              className="flex items-center justify-center gap-1 rounded-lg border border-rose-200 bg-rose-50 py-2 text-xs font-medium text-rose-800 hover:bg-rose-100"
             >
-              <XCircle className="w-3.5 h-3.5 shrink-0" />
+              <XCircle className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Reject</span>
             </button>
           </div>
@@ -472,86 +381,60 @@ export const PlannerReviewScreen: React.FC = () => {
   };
 
   return (
-    <div id="planner-review-screen" className="flex flex-col h-full bg-slate-50 overflow-y-auto">
-      {/* Header */}
-      <div className="bg-slate-900 text-white p-3 sm:p-4 border-b border-slate-800 shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="text-[10px] sm:text-[11px] font-mono text-cyan-300 uppercase tracking-wider">
-                Planning-to-Execution Governance Desk
-              </span>
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight mt-0.5">
-              L5/L6 Schedule Linking & Audit Gate
-            </h2>
-          </div>
-          <span className="text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full shrink-0">
-            {pendingEvents.length} Awaiting
+    <div id="planner-review-screen" className="nexus-scroll flex h-full flex-col overflow-y-auto bg-paper">
+      <ScreenHeader
+        icon={ShieldCheck}
+        eyebrow="Planner governance"
+        title="Link events to L5/L6 work"
+        description="Verify candidate matches, check provenance, then authorize schedule sync. Models propose; you decide."
+        trailing={
+          <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900">
+            {pendingEvents.length} waiting
           </span>
-        </div>
-        <p className="text-[11px] sm:text-xs text-slate-400 mt-1 leading-snug">
-          Deterministic governance: verify activity candidate matches, cross-check provenance, and authorize schedule synchronization.
-        </p>
-      </div>
+        }
+      />
 
-      {/* Success Notification */}
       {actionSuccessMessage && (
-        <div className="m-3 sm:m-4 mb-0 p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-900 text-xs animate-fadeIn">
+        <div className="animate-fadeIn mx-3 mt-3 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-950 sm:mx-4">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
             <span>{actionSuccessMessage}</span>
           </div>
-          <button
-            type="button"
-            onClick={clearMessage}
-            className="text-emerald-700 hover:text-emerald-950 font-bold px-2 py-0.5"
-          >
+          <button type="button" onClick={clearMessage} className="px-2 py-0.5 font-bold text-emerald-800">
             ✕
           </button>
         </div>
       )}
 
-      {/* Main Content Layout */}
-      <div className="p-3 sm:p-4 flex-1 max-w-7xl mx-auto w-full">
+      <div className="mx-auto w-full max-w-7xl flex-1 p-3 sm:p-5">
         {isMobileView ? (
-          /* Mobile Single-Column Navigation (Queue Tab vs Detail Tab) */
           <div className="space-y-3">
-            {/* Mobile View Toggle Pills */}
-            <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
+            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-panel p-1">
               <button
                 type="button"
                 onClick={() => setMobileTab('queue')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
-                  mobileTab === 'queue'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                  mobileTab === 'queue' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'
                 }`}
               >
-                <ListFilter className="w-3.5 h-3.5" />
-                <span>Queue ({pendingEvents.length})</span>
+                <ListFilter className="h-3.5 w-3.5" />
+                Queue ({pendingEvents.length})
               </button>
               <button
                 type="button"
                 onClick={() => setMobileTab('detail')}
                 disabled={!selectedEvent}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all ${
-                  mobileTab === 'detail'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 disabled:opacity-40'
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-40 ${
+                  mobileTab === 'detail' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'
                 }`}
               >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Inspection & Actions</span>
+                <Eye className="h-3.5 w-3.5" />
+                Inspect
               </button>
             </div>
-
-            {/* Render Tab Content */}
             {mobileTab === 'queue' ? renderQueueList() : renderDetailInspection()}
           </div>
         ) : (
-          /* Desktop Side-by-Side 12-Column Grid */
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-4">{renderQueueList()}</div>
             <div className="col-span-8">{renderDetailInspection()}</div>
@@ -559,29 +442,26 @@ export const PlannerReviewScreen: React.FC = () => {
         )}
       </div>
 
-      {/* Reject Reason Modal */}
       {isRejectModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-4 space-y-3 shadow-xl border border-slate-200 text-xs">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <XCircle className="w-4 h-4 text-rose-600" />
-              Reject Execution Event {selectedEvent?.eventNumber}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md space-y-3 rounded-xl border border-line bg-panel p-4 text-xs shadow-xl">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-ink">
+              <XCircle className="h-4 w-4 text-rose-600" />
+              Reject {selectedEvent?.eventNumber}
             </h3>
-            <p className="text-slate-600">
-              Provide a verifiable reason. This rejection is recorded in the permanent audit trail.
-            </p>
+            <p className="text-muted">This reason is written to the permanent audit trail.</p>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="e.g., Photographic evidence indicates work on Line 22, not Line 24."
               rows={3}
-              className="w-full p-2.5 rounded border border-slate-300 text-slate-900"
+              className="w-full rounded border border-line p-2.5 text-ink"
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsRejectModalOpen(false)}
-                className="px-3 py-1.5 rounded border border-slate-300 text-slate-700"
+                className="rounded border border-line px-3 py-1.5 text-ink-2"
               >
                 Cancel
               </button>
@@ -589,39 +469,37 @@ export const PlannerReviewScreen: React.FC = () => {
                 type="button"
                 disabled={!rejectReason.trim()}
                 onClick={handleRejectSubmit}
-                className="px-3 py-1.5 rounded bg-rose-600 text-white font-semibold hover:bg-rose-700 disabled:opacity-50"
+                className="rounded bg-rose-600 px-3 py-1.5 font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
               >
-                Confirm Rejection
+                Confirm rejection
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Clarification Modal */}
       {isClarifyModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-4 space-y-3 shadow-xl border border-slate-200 text-xs">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-purple-600" />
-              Request Field Clarification for {selectedEvent?.eventNumber}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md space-y-3 rounded-xl border border-line bg-panel p-4 text-xs shadow-xl">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-ink">
+              <HelpCircle className="h-4 w-4 text-ember" />
+              Clarify {selectedEvent?.eventNumber}
             </h3>
-            <p className="text-slate-600">
-              Message will be routed to field supervisor{' '}
-              <strong>{selectedEvent?.reporterName}</strong> without changing schedule state.
+            <p className="text-muted">
+              Sent to <strong>{selectedEvent?.reporterName}</strong>. Schedule state is unchanged.
             </p>
             <textarea
               value={clarificationQuery}
               onChange={(e) => setClarificationQuery(e.target.value)}
               placeholder="e.g., Please clarify if the remaining 2 spools are already aligned or awaiting gasket delivery."
               rows={3}
-              className="w-full p-2.5 rounded border border-slate-300 text-slate-900"
+              className="w-full rounded border border-line p-2.5 text-ink"
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsClarifyModalOpen(false)}
-                className="px-3 py-1.5 rounded border border-slate-300 text-slate-700"
+                className="rounded border border-line px-3 py-1.5 text-ink-2"
               >
                 Cancel
               </button>
@@ -629,9 +507,9 @@ export const PlannerReviewScreen: React.FC = () => {
                 type="button"
                 disabled={!clarificationQuery.trim()}
                 onClick={handleClarifySubmit}
-                className="px-3 py-1.5 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 disabled:opacity-50"
+                className="rounded bg-ember px-3 py-1.5 font-semibold text-white hover:bg-ember-dark disabled:opacity-50"
               >
-                Send Request
+                Send request
               </button>
             </div>
           </div>

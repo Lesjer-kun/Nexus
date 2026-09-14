@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wifi, Battery, Signal } from 'lucide-react';
+import { Battery, Signal, Wifi } from 'lucide-react';
 
 interface MobileDeviceWrapperProps {
   children: React.ReactNode;
@@ -11,41 +11,33 @@ export const MobileDeviceWrapper: React.FC<MobileDeviceWrapperProps> = ({
   isMobileFrame,
 }) => {
   if (!isMobileFrame) {
-    return <div className="w-full h-full flex flex-col">{children}</div>;
+    return <div className="flex h-full w-full flex-col">{children}</div>;
   }
 
   return (
-    <div className="flex-1 w-full bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-hidden">
-      {/* Smartphone Chassis */}
+    <div className="flex flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_top,_#2a241c_0%,_#12151a_55%)] p-3 sm:p-6">
       <div
         id="mobile-device-simulator-chassis"
-        className="w-full max-w-[410px] h-[820px] max-h-[96vh] bg-slate-900 rounded-[44px] p-2.5 shadow-2xl border-[3px] border-slate-700 relative flex flex-col overflow-hidden ring-1 ring-white/10"
+        className="relative flex h-[820px] max-h-[96vh] w-full max-w-[390px] flex-col overflow-hidden rounded-[2.35rem] border border-ink-3 bg-ink p-2 shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
       >
-        {/* Dynamic Island in Status Bar Area */}
-        <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-950 rounded-full z-50 flex items-center justify-center pointer-events-none border border-slate-800">
-          <div className="w-2.5 h-2.5 rounded-full bg-slate-900 mr-2 border border-slate-700" />
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-950" />
-        </div>
+        <div className="pointer-events-none absolute top-3.5 left-1/2 z-50 h-5 w-24 -translate-x-1/2 rounded-full border border-ink-3 bg-black" />
 
-        {/* Status Bar */}
-        <div className="h-8 px-6 flex items-center justify-between text-white text-[11px] font-semibold select-none z-40 bg-slate-900 shrink-0">
-          <span className="font-mono text-[11px]">15:02</span>
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <Signal className="w-3 h-3" />
-            <span className="text-[10px] font-bold font-mono">5G</span>
-            <Wifi className="w-3 h-3" />
-            <Battery className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="z-40 flex h-8 shrink-0 items-center justify-between px-6 text-[11px] font-semibold text-paper select-none">
+          <span className="font-mono">15:02</span>
+          <div className="flex items-center gap-1.5 text-paper/70">
+            <Signal className="h-3 w-3" />
+            <span className="font-mono text-[10px] font-bold">5G</span>
+            <Wifi className="h-3 w-3" />
+            <Battery className="h-3.5 w-3.5 text-emerald-400" />
           </div>
         </div>
 
-        {/* Screen Viewport Container */}
-        <div className="flex-1 bg-slate-50 rounded-[28px] overflow-hidden flex flex-col relative shadow-inner">
+        <div className="relative flex flex-1 flex-col overflow-hidden rounded-[1.7rem] bg-paper">
           {children}
         </div>
 
-        {/* Home Indicator Bar */}
-        <div className="h-4 flex items-center justify-center shrink-0 bg-slate-900 pt-0.5">
-          <div className="w-28 h-1 bg-slate-600 rounded-full" />
+        <div className="flex h-4 shrink-0 items-center justify-center bg-ink pt-0.5">
+          <div className="h-1 w-28 rounded-full bg-ink-3" />
         </div>
       </div>
     </div>

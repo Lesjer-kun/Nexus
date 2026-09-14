@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProjectInfo } from '../../types/nexus';
-import { Smartphone, Monitor, Shield, Radio, HardHat } from 'lucide-react';
+import { HardHat, Monitor, Radio, Shield, Smartphone } from 'lucide-react';
 
 interface TopHeaderProps {
   project: ProjectInfo | null;
@@ -22,97 +22,85 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   return (
     <header
       id="nexus-top-header"
-      className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 px-3 sm:px-4 py-2 sm:py-2.5 shadow-md shrink-0"
+      className="z-40 shrink-0 border-b border-ink-3 bg-ink px-3 py-2.5 text-paper sm:px-5"
     >
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-        {/* Logo and Project Branding */}
-        <div className="flex items-center justify-between sm:justify-start gap-2.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-linear-to-tr from-blue-600 to-cyan-500 flex items-center justify-center font-bold text-white text-sm tracking-wider shadow-xs shrink-0">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-3 sm:justify-start">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-ember font-mono text-[13px] font-bold tracking-wider text-white">
               NX
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                  NEXUS
-                </h1>
-                <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-cyan-400 bg-cyan-950/80 px-1.5 py-0.2 rounded border border-cyan-800/60">
-                  SIH26122 • OIL
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-[15px] font-semibold tracking-tight text-paper">NEXUS</h1>
+                <span className="rounded border border-ember/40 bg-ember/15 px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-orange-200 sm:text-[10px]">
+                  SIH26122 · OIL
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-xs md:max-w-md">
+              <p className="mt-0.5 max-w-[240px] truncate font-mono text-[11px] text-paper/55 sm:max-w-md">
                 {project ? `${project.code} — ${project.name}` : 'Pipeline & Booster Station'}
               </p>
             </div>
           </div>
 
-          {/* Sync Status Pill (Visible on small screens right aligned) */}
-          <div className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded-full font-medium shrink-0 sm:hidden">
-            <Radio className="w-2.5 h-2.5 animate-pulse" />
-            <span>Sync Active</span>
+          <div className="flex items-center gap-1.5 rounded-full border border-emerald-800/70 bg-emerald-950/50 px-2 py-0.5 text-[10px] font-medium text-emerald-300 sm:hidden">
+            <Radio className="h-2.5 w-2.5 animate-pulse" />
+            <span>Live</span>
           </div>
         </div>
 
-        {/* Action Controls: Role switch and Device Preview Switch */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-          {/* Online Sync Pill (Desktop) */}
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-full font-medium">
-            <Radio className="w-3 h-3 animate-pulse" />
-            <span className="text-[11px]">Sync Active</span>
+        <div className="flex items-center justify-between gap-2 sm:justify-end">
+          <div className="hidden items-center gap-1.5 rounded-full border border-emerald-800/70 bg-emerald-950/40 px-2.5 py-1 text-[11px] font-medium text-emerald-300 sm:flex">
+            <Radio className="h-3 w-3 animate-pulse" />
+            <span>Sync active</span>
           </div>
 
-          {/* Role Switcher */}
-          <div className="bg-slate-800 p-0.5 rounded-lg border border-slate-700 flex items-center text-xs">
+          <div className="flex items-center rounded-lg border border-ink-3 bg-ink-2 p-0.5 text-xs">
             <button
               id="role-btn-supervisor"
               type="button"
               onClick={() => setActiveRole('SUPERVISOR')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md font-medium text-[11px] sm:text-xs transition-all ${
-                activeRole === 'SUPERVISOR'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors sm:text-xs ${
+                activeRole === 'SUPERVISOR' ? 'bg-ember text-white' : 'text-paper/55 hover:text-paper'
               }`}
             >
-              <HardHat className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <HardHat className="h-3.5 w-3.5" />
               <span>Supervisor</span>
             </button>
             <button
               id="role-btn-planner"
               type="button"
               onClick={() => setActiveRole('PLANNER')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md font-medium text-[11px] sm:text-xs transition-all relative ${
-                activeRole === 'PLANNER'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+              className={`relative flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors sm:text-xs ${
+                activeRole === 'PLANNER' ? 'bg-ember text-white' : 'text-paper/55 hover:text-paper'
               }`}
             >
-              <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <Shield className="h-3.5 w-3.5" />
               <span>Planner</span>
               {pendingReviewCount > 0 && (
-                <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-500 text-slate-950 text-[9px] sm:text-[10px] font-bold flex items-center justify-center">
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-paper px-1 font-mono text-[10px] font-bold text-ink">
                   {pendingReviewCount}
                 </span>
               )}
             </button>
           </div>
 
-          {/* Mobile Frame Simulation Toggle */}
           <button
             id="toggle-mobile-frame-btn"
             type="button"
             onClick={() => setIsMobileFrame(!isMobileFrame)}
             title={isMobileFrame ? 'Switch to Full Screen View' : 'Simulate Mobile Frame'}
-            className="flex items-center gap-1 text-[11px] sm:text-xs px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors shrink-0"
+            className="flex shrink-0 items-center gap-1.5 rounded-md border border-ink-3 bg-ink-2 px-2.5 py-1.5 text-[11px] text-paper/80 transition-colors hover:bg-ink-3 sm:text-xs"
           >
             {isMobileFrame ? (
               <>
-                <Monitor className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400" />
-                <span>Full View</span>
+                <Monitor className="h-3.5 w-3.5 text-orange-200" />
+                <span>Desktop</span>
               </>
             ) : (
               <>
-                <Smartphone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-400" />
-                <span>Mobile Frame</span>
+                <Smartphone className="h-3.5 w-3.5 text-orange-200" />
+                <span>Field phone</span>
               </>
             )}
           </button>

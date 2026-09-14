@@ -1,1 +1,97 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink: #12151a;
+  --color-ink-2: #1c222b;
+  --color-ink-3: #2a3340;
+  --color-paper: #f3efe6;
+  --color-panel: #fbf8f2;
+  --color-line: #e4d9c8;
+  --color-muted: #6d6458;
+  --color-ember: #c45c26;
+  --color-ember-dark: #9a4318;
+  --color-signal: #1a6b6b;
+  --color-signal-soft: #d7eceb;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 2px;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+
+  textarea,
+  input,
+  select {
+    color: var(--color-ink);
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nexus-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #c9bba6 transparent;
+  }
+}
+
+@keyframes nexus-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nexus-pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+}
+
+.animate-fadeIn {
+  animation: nexus-fade 0.28s ease-out both;
+}
+
+.animate-pulse-ring {
+  animation: nexus-pulse-ring 1.4s ease-out infinite;
+}

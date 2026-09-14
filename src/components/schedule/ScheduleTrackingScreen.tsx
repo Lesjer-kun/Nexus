@@ -3,18 +3,17 @@ import { useProjectSchedule } from '../../hooks/useProjectSchedule';
 import { useMobileView } from '../../context/MobileViewContext';
 import { DisciplineBadge } from '../common/DisciplineBadge';
 import { StatusBadge } from '../common/StatusBadge';
+import { ScreenHeader } from '../layout/ScreenHeader';
 import { DisciplineType } from '../../types/nexus';
 import {
-  Calendar,
   AlertTriangle,
-  CheckCircle2,
+  Calendar,
   Filter,
-  Search,
   Flame,
   LayoutGrid,
-  Table as TableIcon,
   MapPin,
-  Clock,
+  Search,
+  Table as TableIcon,
 } from 'lucide-react';
 
 export const ScheduleTrackingScreen: React.FC = () => {
@@ -44,160 +43,124 @@ export const ScheduleTrackingScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full p-8 text-slate-500">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
-        Loading L5/L6 Schedule Baseline...
+      <div className="flex h-full items-center justify-center p-8 text-muted">
+        <div className="mr-2 h-6 w-6 animate-spin rounded-full border-2 border-ember border-t-transparent" />
+        Loading L5/L6 baseline…
       </div>
     );
   }
 
   return (
-    <div id="schedule-tracking-screen" className="flex flex-col h-full bg-slate-50 overflow-y-auto">
-      {/* Top Header */}
-      <div className="bg-slate-900 text-white p-3 sm:p-4 border-b border-slate-800 shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-cyan-400" />
-              <span className="text-[10px] sm:text-[11px] font-mono text-cyan-300 uppercase tracking-wider">
-                Work Breakdown Structure (L5/L6)
-              </span>
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight mt-0.5">
-              Planned vs. Verified Actuals
-            </h2>
-          </div>
-          <span className="text-[10px] sm:text-xs font-mono bg-slate-800 text-slate-300 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded border border-slate-700 shrink-0">
+    <div id="schedule-tracking-screen" className="nexus-scroll flex h-full flex-col overflow-y-auto bg-paper">
+      <ScreenHeader
+        icon={Calendar}
+        eyebrow="Work breakdown (L5/L6)"
+        title="Planned vs verified actuals"
+        trailing={
+          <span className="rounded-md border border-line bg-panel px-2 py-1 font-mono text-[10px] text-muted sm:text-xs">
             {project?.baselineVersion}
           </span>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="p-3 sm:p-4 max-w-7xl mx-auto w-full space-y-3 sm:space-y-4 flex-1">
-        {/* KPI Metrics Strip */}
+      <div className="mx-auto w-full max-w-7xl flex-1 space-y-3 p-3 sm:space-y-4 sm:p-5">
         <div className={`grid gap-2.5 ${isMobileView ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`}>
-          <div className="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-3 shadow-xs">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Total L5/L6 Activities
-            </span>
-            <div className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 font-mono">
-              {scheduleStats.total}
+          {[
+            {
+              label: 'Activities',
+              value: scheduleStats.total,
+              hint: `${scheduleStats.completed} completed`,
+            },
+            {
+              label: 'Progress',
+              value: `${project?.overallProgressPct}%`,
+              hint: null,
+              bar: project?.overallProgressPct,
+            },
+            {
+              label: 'Critical path',
+              value: scheduleStats.criticalPathCount,
+              hint: 'Zero float',
+              icon: <Flame className="h-3 w-3 text-rose-500" />,
+            },
+            {
+              label: 'Delayed / halted',
+              value: scheduleStats.delayedCount,
+              hint: `Avg +${scheduleStats.averageVarianceDays}d`,
+              icon: <AlertTriangle className="h-3 w-3 text-amber-500" />,
+              accent: 'text-amber-800',
+            },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-xl border border-line bg-panel p-3">
+              <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted">
+                {kpi.icon}
+                {kpi.label}
+              </span>
+              <div className={`mt-0.5 font-mono text-xl font-bold ${kpi.accent || 'text-ink'}`}>{kpi.value}</div>
+              {kpi.bar != null && (
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line">
+                  <div className="h-full rounded-full bg-ember" style={{ width: `${kpi.bar}%` }} />
+                </div>
+              )}
+              {kpi.hint && <div className="mt-0.5 text-[10px] text-muted">{kpi.hint}</div>}
             </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
-              {scheduleStats.completed} verified completed
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-3 shadow-xs">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Overall Progress
-            </span>
-            <div className="text-lg sm:text-xl font-bold text-blue-600 mt-0.5 font-mono">
-              {project?.overallProgressPct}%
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
-              <div
-                className="bg-blue-600 h-full rounded-full"
-                style={{ width: `${project?.overallProgressPct}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-3 shadow-xs">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <Flame className="w-3 h-3 text-rose-500 shrink-0" />
-              Critical Path Tasks
-            </span>
-            <div className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 font-mono">
-              {scheduleStats.criticalPathCount}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">Zero float tolerance</div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-3 shadow-xs">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
-              Delayed / Halted
-            </span>
-            <div className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5 font-mono">
-              {scheduleStats.delayedCount}
-            </div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
-              Avg variance: +{scheduleStats.averageVarianceDays}d
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Filter, Search, and View Mode Bar */}
-        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-xs space-y-2.5">
-          {/* Top row: Search input & View Mode Toggle */}
+        <div className="space-y-2.5 rounded-xl border border-line bg-panel p-3">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="absolute top-2.5 left-3 h-3.5 w-3.5 text-muted" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search WBS, activity, tag..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-900"
+                placeholder="Search WBS, activity, tag…"
+                className="w-full rounded-lg border border-line bg-white py-1.5 pr-3 pl-8 text-xs text-ink focus:border-ember focus:ring-2 focus:ring-ember/25 focus:outline-none"
               />
             </div>
-
-            {/* Card vs Table toggle */}
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 shrink-0">
+            <div className="flex shrink-0 items-center rounded-lg border border-line bg-paper p-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode('cards')}
-                className={`p-1.5 rounded-md text-xs transition-colors ${
-                  viewMode === 'cards'
-                    ? 'bg-white text-blue-600 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
                 title="Card View"
+                className={`rounded-md p-1.5 ${viewMode === 'cards' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'}`}
               >
-                <LayoutGrid className="w-3.5 h-3.5" />
+                <LayoutGrid className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md text-xs transition-colors ${
-                  viewMode === 'table'
-                    ? 'bg-white text-blue-600 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
                 title="Table View"
+                className={`rounded-md p-1.5 ${viewMode === 'table' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'}`}
               >
-                <TableIcon className="w-3.5 h-3.5" />
+                <TableIcon className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Discipline Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-            <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-0.5" />
+          <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto pb-1">
+            <Filter className="ml-0.5 h-3.5 w-3.5 shrink-0 text-muted" />
             {disciplines.map((d) => (
               <button
                 key={d}
                 type="button"
                 onClick={() => setSelectedDiscipline(d)}
-                className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors shrink-0 ${
-                  selectedDiscipline === d
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  selectedDiscipline === d ? 'bg-ink text-paper' : 'bg-paper text-ink-2 hover:bg-line'
                 }`}
               >
-                {d === 'ALL' ? 'All Disciplines' : d}
+                {d === 'ALL' ? 'All disciplines' : d}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Card View (Mobile-First Default) */}
         {viewMode === 'cards' ? (
           <div className="space-y-2.5">
             {filteredActivities.length === 0 ? (
-              <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400 text-xs">
-                No L5/L6 activities found matching current search.
+              <div className="rounded-xl border border-line bg-panel p-8 text-center text-xs text-muted">
+                No L5/L6 activities match this search.
               </div>
             ) : (
               filteredActivities.map((act) => {
@@ -206,105 +169,77 @@ export const ScheduleTrackingScreen: React.FC = () => {
                   <div
                     key={act.id}
                     id={`schedule-card-${act.id}`}
-                    className={`bg-white rounded-xl border border-slate-200 p-3 shadow-xs space-y-2.5 transition-all ${
+                    className={`space-y-2.5 rounded-xl border border-line bg-panel p-3 ${
                       act.isCriticalPath ? 'border-l-4 border-l-rose-500' : ''
                     }`}
                   >
-                    {/* Header Row: WBS Code, Critical Path, Status */}
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-xs border border-blue-200">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="rounded border border-ember/20 bg-orange-50 px-1.5 py-0.5 font-mono text-xs font-bold text-ember-dark">
                           {act.wbsCode}
                         </span>
                         {act.isCriticalPath && (
-                          <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                            <Flame className="w-3 h-3 text-rose-600" /> CP
+                          <span className="flex items-center gap-0.5 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-800">
+                            <Flame className="h-3 w-3" /> CP
                           </span>
                         )}
                         <DisciplineBadge discipline={act.discipline} />
                       </div>
                       <StatusBadge status={act.status} />
                     </div>
-
-                    {/* Activity Name */}
-                    <div className="text-xs font-bold text-slate-900">
-                      {act.name}
-                    </div>
-
-                    {/* Location & Tag */}
-                    <div className="flex items-center gap-2 text-[11px] text-slate-600 flex-wrap">
+                    <div className="text-xs font-bold text-ink">{act.name}</div>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span>{act.location}</span>
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        {act.location}
                       </div>
                       {act.equipmentTag && (
-                        <span className="font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">
-                          Tag: {act.equipmentTag}
-                        </span>
+                        <span className="rounded bg-paper px-1.5 py-0.5 font-mono text-[10px]">Tag: {act.equipmentTag}</span>
                       )}
                     </div>
-
-                    {/* Planned vs Actual Dates Box */}
-                    <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2 rounded-lg border border-slate-200 font-mono">
+                    <div className="grid grid-cols-2 gap-2 rounded-lg border border-line bg-paper p-2 font-mono text-[11px]">
                       <div>
-                        <span className="text-slate-400 block text-[10px] font-sans uppercase">
-                          Planned Window
-                        </span>
-                        <span className="text-slate-700">
+                        <span className="block font-sans text-[10px] uppercase text-muted">Planned</span>
+                        <span className="text-ink-2">
                           {act.plannedStart.slice(5)} → {act.plannedEnd.slice(5)}
                         </span>
-                        <div className="text-[10px] text-slate-400 font-sans">
-                          ({act.baselineDurationDays}d duration)
-                        </div>
+                        <div className="font-sans text-[10px] text-muted">({act.baselineDurationDays}d)</div>
                       </div>
-
                       <div>
-                        <span className="text-slate-400 block text-[10px] font-sans uppercase">
-                          Verified Actual
-                        </span>
+                        <span className="block font-sans text-[10px] uppercase text-muted">Verified</span>
                         {act.actualStart ? (
-                          <span className={act.actualEnd ? 'text-emerald-700 font-bold' : 'text-amber-600 font-bold'}>
-                            {act.actualStart.slice(5)} {act.actualEnd ? `→ ${act.actualEnd.slice(5)}` : '(Active)'}
+                          <span className={act.actualEnd ? 'font-bold text-emerald-800' : 'font-bold text-amber-800'}>
+                            {act.actualStart.slice(5)} {act.actualEnd ? `→ ${act.actualEnd.slice(5)}` : '(active)'}
                           </span>
                         ) : (
-                          <span className="text-slate-400 italic">Not started</span>
+                          <span className="text-muted italic">Not started</span>
                         )}
                         <div className="mt-0.5">
                           {isDelayed ? (
-                            <span className="text-rose-700 font-bold bg-rose-50 px-1 py-0.2 rounded text-[10px] border border-rose-200">
+                            <span className="rounded border border-rose-200 bg-rose-50 px-1 text-[10px] font-bold text-rose-800">
                               +{act.varianceDays}d delay
                             </span>
                           ) : act.status === 'COMPLETED' ? (
-                            <span className="text-emerald-700 font-bold text-[10px]">
-                              On Time
-                            </span>
+                            <span className="text-[10px] font-bold text-emerald-800">On time</span>
                           ) : (
-                            <span className="text-slate-500 text-[10px]">0d float</span>
+                            <span className="text-[10px] text-muted">0d float</span>
                           )}
                         </div>
                       </div>
                     </div>
-
-                    {/* Progress Bar */}
                     <div>
-                      <div className="flex items-center justify-between text-[11px] font-mono mb-1">
-                        <span className="font-semibold text-slate-800">
-                          Progress: {act.progressPct}%
-                        </span>
+                      <div className="mb-1 flex items-center justify-between font-mono text-[11px]">
+                        <span className="font-semibold text-ink">{act.progressPct}%</span>
                         {act.plannedQuantity && (
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-muted">
                             {act.installedQuantity || 0}/{act.plannedQuantity} {act.unitOfMeasure}
                           </span>
                         )}
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-line">
                         <div
                           className={`h-full rounded-full ${
-                            act.progressPct === 100
-                              ? 'bg-emerald-500'
-                              : isDelayed
-                              ? 'bg-amber-500'
-                              : 'bg-blue-600'
+                            act.progressPct === 100 ? 'bg-emerald-600' : isDelayed ? 'bg-amber-500' : 'bg-ember'
                           }`}
                           style={{ width: `${act.progressPct}%` }}
                         />
@@ -316,27 +251,26 @@ export const ScheduleTrackingScreen: React.FC = () => {
             )}
           </div>
         ) : (
-          /* Table View (with horizontal scroll to prevent squishing) */
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="overflow-hidden rounded-xl border border-line bg-panel">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse min-w-[650px]">
+              <table className="w-full min-w-[650px] border-collapse text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
-                    <th className="py-2.5 px-3">WBS / Activity</th>
-                    <th className="py-2.5 px-3">Discipline</th>
-                    <th className="py-2.5 px-3">Location & Tag</th>
-                    <th className="py-2.5 px-3">Planned</th>
-                    <th className="py-2.5 px-3">Verified Actual</th>
-                    <th className="py-2.5 px-3">Variance</th>
-                    <th className="py-2.5 px-3">Progress</th>
-                    <th className="py-2.5 px-3 text-right">Status</th>
+                  <tr className="border-b border-line bg-paper text-[10px] font-semibold tracking-wider text-muted uppercase">
+                    <th className="px-3 py-2.5">WBS / Activity</th>
+                    <th className="px-3 py-2.5">Discipline</th>
+                    <th className="px-3 py-2.5">Location & tag</th>
+                    <th className="px-3 py-2.5">Planned</th>
+                    <th className="px-3 py-2.5">Verified</th>
+                    <th className="px-3 py-2.5">Variance</th>
+                    <th className="px-3 py-2.5">Progress</th>
+                    <th className="px-3 py-2.5 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 text-slate-700">
+                <tbody className="divide-y divide-line text-ink-2">
                   {filteredActivities.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-slate-400">
-                        No L5/L6 activities found matching filter.
+                      <td colSpan={8} className="py-8 text-center text-muted">
+                        No L5/L6 activities match this filter.
                       </td>
                     </tr>
                   ) : (
@@ -345,96 +279,71 @@ export const ScheduleTrackingScreen: React.FC = () => {
                       return (
                         <tr
                           key={act.id}
-                          className={`hover:bg-slate-50/70 transition-colors ${
-                            act.isCriticalPath ? 'border-l-4 border-l-rose-500' : ''
-                          }`}
+                          className={`hover:bg-paper/80 ${act.isCriticalPath ? 'border-l-4 border-l-rose-500' : ''}`}
                         >
-                          <td className="py-2.5 px-3">
+                          <td className="px-3 py-2.5">
                             <div className="flex items-center gap-1">
-                              <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[11px]">
+                              <span className="rounded bg-orange-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-ember-dark">
                                 {act.wbsCode}
                               </span>
                               {act.isCriticalPath && (
-                                <span className="text-[9px] bg-rose-100 text-rose-800 font-bold px-1 rounded flex items-center">
-                                  CP
-                                </span>
+                                <span className="rounded bg-rose-100 px-1 text-[9px] font-bold text-rose-800">CP</span>
                               )}
                             </div>
-                            <div className="font-semibold text-slate-900 mt-0.5 max-w-xs truncate">
-                              {act.name}
-                            </div>
+                            <div className="mt-0.5 max-w-xs truncate font-semibold text-ink">{act.name}</div>
                           </td>
-
-                          <td className="py-2.5 px-3">
+                          <td className="px-3 py-2.5">
                             <DisciplineBadge discipline={act.discipline} />
                           </td>
-
-                          <td className="py-2.5 px-3">
-                            <div className="font-medium text-slate-800 truncate max-w-[120px]">
-                              {act.location}
-                            </div>
+                          <td className="px-3 py-2.5">
+                            <div className="max-w-[120px] truncate font-medium text-ink">{act.location}</div>
                             {act.equipmentTag && (
-                              <span className="text-[10px] text-slate-500 font-mono">
-                                Tag: {act.equipmentTag}
-                              </span>
+                              <span className="font-mono text-[10px] text-muted">Tag: {act.equipmentTag}</span>
                             )}
                           </td>
-
-                          <td className="py-2.5 px-3 text-slate-600 font-mono text-[10px]">
+                          <td className="px-3 py-2.5 font-mono text-[10px] text-muted">
                             <div>{act.plannedStart}</div>
-                            <div className="text-slate-400">to {act.plannedEnd}</div>
+                            <div>to {act.plannedEnd}</div>
                           </td>
-
-                          <td className="py-2.5 px-3 font-mono text-[10px]">
+                          <td className="px-3 py-2.5 font-mono text-[10px]">
                             {act.actualStart ? (
                               <div>
-                                <div className="text-slate-900 font-semibold">{act.actualStart}</div>
+                                <div className="font-semibold text-ink">{act.actualStart}</div>
                                 {act.actualEnd ? (
-                                  <div className="text-emerald-700 font-semibold">
-                                    End: {act.actualEnd}
-                                  </div>
+                                  <div className="font-semibold text-emerald-800">End: {act.actualEnd}</div>
                                 ) : (
-                                  <div className="text-amber-600">Active...</div>
+                                  <div className="text-amber-800">Active…</div>
                                 )}
                               </div>
                             ) : (
-                              <span className="text-slate-400 italic">Not started</span>
+                              <span className="text-muted italic">Not started</span>
                             )}
                           </td>
-
-                          <td className="py-2.5 px-3 font-mono">
+                          <td className="px-3 py-2.5 font-mono">
                             {isDelayed ? (
-                              <span className="text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px] border border-rose-200">
+                              <span className="rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-800">
                                 +{act.varianceDays}d
                               </span>
                             ) : act.status === 'COMPLETED' ? (
-                              <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] border border-emerald-200">
-                                On Time
+                              <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-800">
+                                On time
                               </span>
                             ) : (
-                              <span className="text-slate-500 text-[10px]">0d</span>
+                              <span className="text-[10px] text-muted">0d</span>
                             )}
                           </td>
-
-                          <td className="py-2.5 px-3 min-w-[100px]">
-                            <div className="text-[10px] font-mono mb-1 font-semibold text-slate-800">
-                              {act.progressPct}%
-                            </div>
-                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <td className="min-w-[100px] px-3 py-2.5">
+                            <div className="mb-1 font-mono text-[10px] font-semibold text-ink">{act.progressPct}%</div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-line">
                               <div
                                 className={`h-full rounded-full ${
-                                  act.progressPct === 100
-                                    ? 'bg-emerald-500'
-                                    : isDelayed
-                                    ? 'bg-amber-500'
-                                    : 'bg-blue-600'
+                                  act.progressPct === 100 ? 'bg-emerald-600' : isDelayed ? 'bg-amber-500' : 'bg-ember'
                                 }`}
                                 style={{ width: `${act.progressPct}%` }}
                               />
                             </div>
                           </td>
-
-                          <td className="py-2.5 px-3 text-right">
+                          <td className="px-3 py-2.5 text-right">
                             <StatusBadge status={act.status} />
                           </td>
                         </tr>

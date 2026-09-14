@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ConfidenceGaugeProps {
-  score: number; // 0.0 to 1.0
+  score: number;
   label?: string;
   size?: 'sm' | 'md' | 'lg';
   showDetails?: boolean;
@@ -10,52 +10,45 @@ interface ConfidenceGaugeProps {
 export const ConfidenceGauge: React.FC<ConfidenceGaugeProps> = ({
   score,
   label = 'Mapping Confidence',
-  size = 'md',
   showDetails = false,
 }) => {
   const pct = Math.round(score * 100);
 
-  let barColor = 'bg-emerald-500';
-  let textColor = 'text-emerald-700';
-  let badgeBg = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-  let category = 'High Confidence';
+  let bar = 'bg-emerald-600';
+  let text = 'text-emerald-800';
+  let badge = 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  let category = 'High';
 
   if (score < 0.7) {
-    barColor = 'bg-rose-500';
-    textColor = 'text-rose-700';
-    badgeBg = 'bg-rose-50 text-rose-800 border-rose-200';
-    category = 'Low / Needs Review';
+    bar = 'bg-rose-600';
+    text = 'text-rose-800';
+    badge = 'border-rose-200 bg-rose-50 text-rose-800';
+    category = 'Needs review';
   } else if (score < 0.88) {
-    barColor = 'bg-amber-500';
-    textColor = 'text-amber-700';
-    badgeBg = 'bg-amber-50 text-amber-800 border-amber-200';
-    category = 'Medium Confidence';
+    bar = 'bg-amber-500';
+    text = 'text-amber-900';
+    badge = 'border-amber-200 bg-amber-50 text-amber-900';
+    category = 'Medium';
   }
 
   return (
-    <div className="flex flex-col gap-1 w-full" id={`confidence-gauge-${pct}`}>
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-700">{label}</span>
+    <div className="flex w-full flex-col gap-1.5" id={`confidence-gauge-${pct}`}>
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="font-medium text-ink">{label}</span>
         <div className="flex items-center gap-1.5">
-          <span className={`px-1.5 py-0.5 rounded border text-[11px] font-semibold ${badgeBg}`}>
-            {category}
-          </span>
-          <span className={`font-mono font-bold ${textColor}`}>
-            {score.toFixed(2)} ({pct}%)
-          </span>
+          <span className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold ${badge}`}>{category}</span>
+          <span className={`font-mono text-[12px] font-bold ${text}`}>{pct}%</span>
         </div>
       </div>
-
-      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
         <div
-          className={`h-full ${barColor} transition-all duration-500 rounded-full`}
+          className={`h-full rounded-full transition-all duration-500 ${bar}`}
           style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
         />
       </div>
-
       {showDetails && (
-        <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
-          * Indicates interpretation match confidence, distinct from physical evidence completeness.
+        <p className="text-[10px] leading-relaxed text-muted">
+          Interpretation match only — separate from evidence completeness.
         </p>
       )}
     </div>

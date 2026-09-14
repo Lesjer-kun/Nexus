@@ -1,48 +1,40 @@
 import React from 'react';
 import { EventStatus, GovernanceStatus } from '../../types/nexus';
 
+const pill = 'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide';
+
 export const StatusBadge: React.FC<{
   status: EventStatus | 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'HALTED' | 'DELAYED' | null;
   label?: string;
 }> = ({ status, label }) => {
   if (!status) {
     return (
-      <span className="inline-flex items-center text-xs font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">
-        null (unspecified)
-      </span>
+      <span className={`${pill} border-line bg-paper font-mono text-muted`}>null</span>
     );
   }
 
   const normalized = status.toLowerCase();
-
-  let bg = 'bg-slate-100 text-slate-700 border-slate-200';
-  let dotColor = 'bg-slate-400';
+  let tone = 'border-line bg-paper text-muted';
+  let dot = 'bg-muted';
 
   if (normalized === 'completed') {
-    bg = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-    dotColor = 'bg-emerald-500';
+    tone = 'border-emerald-200 bg-emerald-50 text-emerald-800';
+    dot = 'bg-emerald-500';
   } else if (normalized === 'in_progress' || normalized === 'started' || normalized === 'resumed') {
-    bg = 'bg-sky-50 text-sky-800 border-sky-200';
-    dotColor = 'bg-sky-500';
+    tone = 'border-sky-200 bg-sky-50 text-sky-800';
+    dot = 'bg-sky-500';
   } else if (normalized === 'interrupted' || normalized === 'halted') {
-    bg = 'bg-rose-50 text-rose-800 border-rose-200';
-    dotColor = 'bg-rose-500';
+    tone = 'border-rose-200 bg-rose-50 text-rose-800';
+    dot = 'bg-rose-500';
   } else if (normalized === 'delayed') {
-    bg = 'bg-amber-50 text-amber-800 border-amber-200';
-    dotColor = 'bg-amber-500';
-  } else if (normalized === 'not_started') {
-    bg = 'bg-slate-100 text-slate-600 border-slate-200';
-    dotColor = 'bg-slate-400';
+    tone = 'border-amber-200 bg-amber-50 text-amber-900';
+    dot = 'bg-amber-500';
   }
 
-  const displayText = label || status.replace(/_/g, ' ');
-
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full border ${bg} uppercase tracking-wider`}
-    >
-      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-      {displayText}
+    <span className={`${pill} ${tone}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+      {label || status.replace(/_/g, ' ')}
     </span>
   );
 };
@@ -51,37 +43,37 @@ export const GovernanceBadge: React.FC<{ status: GovernanceStatus }> = ({ status
   switch (status) {
     case 'APPROVED':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-          Verified & Linked
+        <span className={`${pill} border-emerald-200 bg-emerald-50 text-emerald-800`}>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+          Verified
         </span>
       );
     case 'CORRECTED':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-          Planner Corrected
+        <span className={`${pill} border-sky-200 bg-sky-50 text-sky-800`}>
+          <span className="h-1.5 w-1.5 rounded-full bg-sky-600" />
+          Corrected
         </span>
       );
     case 'PENDING_REVIEW':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
-          Pending Governance
+        <span className={`${pill} border-amber-200 bg-amber-50 text-amber-950`}>
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-600" />
+          In review
         </span>
       );
     case 'REJECTED':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+        <span className={`${pill} border-rose-200 bg-rose-50 text-rose-800`}>
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
           Rejected
         </span>
       );
     case 'NEEDS_CLARIFICATION':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
-          Needs Clarification
+        <span className={`${pill} border-orange-200 bg-orange-50 text-orange-900`}>
+          <span className="h-1.5 w-1.5 rounded-full bg-ember" />
+          Clarify
         </span>
       );
     default:
