@@ -9,7 +9,7 @@ import math
 import hashlib
 import logging
 from typing import List
-from app.config import settings
+from config import settings
 
 logger = logging.getLogger("nexus.matching.embeddings")
 

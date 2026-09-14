@@ -14,15 +14,15 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 
-from app.database.db import get_db
-from app.nlp.schema import (
+from database.db import get_db
+from nlp.schema import (
     ExtractionRequest, NormalizationRequest, NormalizationResponse,
     ValidationRequest, ValidationResponse,
 )
-from app.nlp.extractor import extract_activity_from_text, ExtractionError
-from app.nlp.normalizer import normalize_event_fields
-from app.nlp.validator import validate_event_dict
-from app.nlp.speech import transcribe_audio_file
+from nlp.extractor import extract_activity_from_text, ExtractionError
+from nlp.normalizer import normalize_event_fields
+from nlp.validator import validate_event_dict
+from nlp.speech import transcribe_audio_file
 
 router = APIRouter(tags=["Module 3: AI Extraction & NLP Pipeline"])
 

@@ -3,9 +3,9 @@ NEXUS - Test Suite for Module 3 (AI Extraction & NLP Pipeline)
 Tests Extraction, Normalization, and Deterministic Validation Gate.
 """
 
-from app.nlp.extractor import extract_activity_from_text
-from app.nlp.normalizer import normalize_event_fields, parse_quantity, normalize_time, normalize_term
-from app.nlp.validator import validate_event_dict
+from nlp.extractor import extract_activity_from_text
+from nlp.normalizer import normalize_event_fields, parse_quantity, normalize_time, normalize_term
+from nlp.validator import validate_event_dict
 
 def test_extraction_pipe_spool():
     text = "Line 24 pipe spool erection completed around 3 PM today."

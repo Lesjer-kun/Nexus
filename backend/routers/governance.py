@@ -16,10 +16,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from app.database.db import get_db
-from app.database.models import ExecutionEvent, Activity, Validation, AuditRecord, MemoryRecord
-from app.matching.embeddings import embed_text
-from app.utils.serializers import serialize_event, serialize_activity
+from database.db import get_db
+from database.models import ExecutionEvent, Activity, Validation, AuditRecord, MemoryRecord
+from matching.embeddings import embed_text
+from utils.serializers import serialize_event, serialize_activity
 
 router = APIRouter(tags=["Module 6 & 7: Governance & Schedule State Management"])
 

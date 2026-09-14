@@ -13,7 +13,7 @@ import struct
 import math
 import logging
 from typing import Optional, Dict, Any
-from app.config import settings
+from config import settings
 
 logger = logging.getLogger("nexus.nlp.speech")
 

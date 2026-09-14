@@ -3,11 +3,19 @@ NEXUS Test Configuration & Shared Pytest Fixtures
 Defines 'client' and 'db_session' fixtures so running 'pytest tests/' works seamlessly out-of-the-box.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure backend root is on sys.path
+backend_dir = str(Path(__file__).resolve().parent.parent)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
-from app.database.db import SessionLocal, init_db
-from app.database.seed_data import seed_database
+from main import app
+from database.db import SessionLocal, init_db
+from database.seed_data import seed_database
 
 @pytest.fixture(scope="session")
 def db_session():

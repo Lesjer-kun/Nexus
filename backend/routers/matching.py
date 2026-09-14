@@ -12,13 +12,13 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
-from app.database.db import get_db
-from app.database.models import ExecutionEvent
-from app.matching.activity_matching import (
+from database.db import get_db
+from database.models import ExecutionEvent
+from matching.activity_matching import (
     find_top_candidates,
     evaluate_governance_decision,
 )
-from app.matching.matcher_service import (
+from matching.matcher_service import (
     get_candidates_for_event,
     compute_pair_score,
     select_candidate_for_event,

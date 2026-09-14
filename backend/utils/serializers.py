@@ -5,7 +5,7 @@ types/nexus.ts (ProjectInfo, ScheduleActivity, ExecutionEvent, CandidateMatch, A
 """
 
 from typing import Dict, Any, List, Optional
-from app.database.models import (
+from database.models import (
     Project, Activity, ExecutionEvent, Evidence, AuditRecord, MemoryRecord
 )
 

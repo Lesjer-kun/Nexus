@@ -15,15 +15,15 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from app.config import settings
-from app.database.db import get_db
-from app.database.models import ExecutionEvent, Evidence, AuditRecord
-from app.nlp.extractor import extract_activity_from_text, ExtractionError
-from app.nlp.normalizer import normalize_event_fields
-from app.nlp.validator import validate_event_dict
-from app.matching.activity_matching import find_top_candidates, evaluate_governance_decision
-from app.matching.embeddings import embed_text
-from app.utils.serializers import serialize_event
+from config import settings
+from database.db import get_db
+from database.models import ExecutionEvent, Evidence, AuditRecord
+from nlp.extractor import extract_activity_from_text, ExtractionError
+from nlp.normalizer import normalize_event_fields
+from nlp.validator import validate_event_dict
+from matching.activity_matching import find_top_candidates, evaluate_governance_decision
+from matching.embeddings import embed_text
+from utils.serializers import serialize_event
 
 router = APIRouter(tags=["Module 2: Field Capture & Ingestion Pipeline"])
 

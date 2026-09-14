@@ -7,8 +7,8 @@ to SQLite for offline hackathon/demo operation.
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
-from app.config import settings
-from app.database.models import Base
+from config import settings
+from database.models import Base
 
 logger = logging.getLogger("nexus.db")
 

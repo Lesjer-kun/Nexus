@@ -3,14 +3,14 @@ NEXUS - Test Suite for Module 4 (Semantic Schedule Matching Service)
 Tests multi-signal hybrid matching, score breakdown, and governance decision thresholds.
 """
 
-from app.database.db import SessionLocal, init_db
-from app.database.seed_data import seed_database
-from app.matching.activity_matching import (
+from database.db import SessionLocal, init_db
+from database.seed_data import seed_database
+from matching.activity_matching import (
     find_top_candidates,
     score_activity_candidate,
     evaluate_governance_decision,
 )
-from app.database.models import Activity
+from database.models import Activity
 
 def test_matching_pipe_spool(db_session):
     event_data = {

@@ -4,9 +4,9 @@ Seeds authoritative Oil India Limited project metadata, L5/L6 activities,
 and historical memory records for immediate demonstration.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
-from app.database.models import Project, Activity, ExecutionEvent, AuditRecord, MemoryRecord
+from database.models import Project, Activity, ExecutionEvent, AuditRecord, MemoryRecord
 
 def seed_database(db: Session):
     # Check if project already exists
@@ -224,7 +224,7 @@ def seed_database(db: Session):
         governance_status="APPROVED",
         planner_review_notes="Verified against flange torque logs and photo P-1827.",
         reviewed_by="P. Sharma (Lead Project Planner)",
-        reviewed_at=datetime.utcnow(),
+        reviewed_at=datetime.now(timezone.utc),
     )
     db.add(initial_event)
 

@@ -10,9 +10,9 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 
-from app.database.db import get_db
-from app.database.models import Project, Activity
-from app.utils.serializers import serialize_project, serialize_activity
+from database.db import get_db
+from database.models import Project, Activity
+from utils.serializers import serialize_project, serialize_activity
 
 router = APIRouter(tags=["Module 1: Project & Schedule Baseline Service"])
 

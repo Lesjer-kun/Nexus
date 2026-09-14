@@ -11,7 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
-from app.config import settings
+from config import settings
 
 Base = declarative_base()
 

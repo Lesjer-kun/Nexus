@@ -14,9 +14,9 @@ from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 
-from app.database.db import get_db
-from app.database.models import Evidence, ExecutionEvent
-from app.utils.serializers import serialize_evidence
+from database.db import get_db
+from database.models import Evidence, ExecutionEvent
+from utils.serializers import serialize_evidence
 
 router = APIRouter(tags=["Module 5: Evidence & Provenance Service"])
 

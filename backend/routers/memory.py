@@ -11,10 +11,10 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 
-from app.database.db import get_db
-from app.database.models import MemoryRecord
-from app.matching.embeddings import embed_query, embed_text, cosine_similarity
-from app.utils.serializers import serialize_memory
+from database.db import get_db
+from database.models import MemoryRecord
+from matching.embeddings import embed_query, embed_text, cosine_similarity
+from utils.serializers import serialize_memory
 
 router = APIRouter(tags=["Module 9: Institutional Memory & RAG Service"])
 

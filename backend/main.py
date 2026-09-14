@@ -9,10 +9,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
-from app.database.db import init_db, SessionLocal
-from app.database.seed_data import seed_database
-from app.routers import (
+import sys
+from pathlib import Path
+
+# Ensure backend root directory is on sys.path for direct imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from config import settings
+from database.db import init_db, SessionLocal
+from database.seed_data import seed_database
+from routers import (
     field_capture,
     extraction,
     matching,

@@ -8,9 +8,9 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, date as date_type
 from sqlalchemy.orm import Session
 
-from app.config import settings
-from app.database.models import Activity, ExecutionEvent
-from app.matching.embeddings import embed_text, embed_query, cosine_similarity
+from config import settings
+from database.models import Activity, ExecutionEvent
+from matching.embeddings import embed_text, embed_query, cosine_similarity
 
 # Multi-Signal Weights defined in Solution Blueprint Section 6.4 / 7.1
 WEIGHTS = {

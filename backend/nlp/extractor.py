@@ -12,9 +12,9 @@ import logging
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-from app.config import settings
-from app.nlp.schema import ExtractedActivity, StructuredExecutionEvent
-from app.nlp.prompts import SYSTEM_PROMPT, build_user_prompt
+from config import settings
+from nlp.schema import ExtractedActivity, StructuredExecutionEvent
+from nlp.prompts import SYSTEM_PROMPT, build_user_prompt
 
 logger = logging.getLogger("nexus.nlp.extractor")
 

@@ -4,9 +4,9 @@ Tests FastAPI endpoints for Field Capture, NLP Extraction, Matching, Governance,
 """
 
 from fastapi.testclient import TestClient
-from app.main import app
-from app.database.db import init_db, SessionLocal
-from app.database.seed_data import seed_database
+from main import app
+from database.db import init_db, SessionLocal
+from database.seed_data import seed_database
 
 def test_health_check(client):
     res = client.get("/api/health")

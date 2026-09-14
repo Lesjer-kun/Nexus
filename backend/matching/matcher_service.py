@@ -7,13 +7,13 @@ from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app.database.models import ExecutionEvent, Activity, MatchDecision, AuditRecord
-from app.matching.activity_matching import (
+from database.models import ExecutionEvent, Activity, MatchDecision, AuditRecord
+from matching.activity_matching import (
     find_top_candidates,
     score_activity_candidate,
     evaluate_governance_decision,
 )
-from app.matching.embeddings import embed_text
+from matching.embeddings import embed_text
 
 def get_candidates_for_event(
     db: Session, event_id: int, top_k: int = 3

@@ -6,7 +6,7 @@ Validates all endpoints and JSON contracts expected by the Nexus React frontend
 
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from main import app
 
 def test_frontend_project_contract(client):
     """Checks GET /api/projects contract matches frontend ProjectInfo interface."""

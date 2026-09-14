@@ -10,9 +10,9 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
-from app.database.db import get_db
-from app.database.models import AuditRecord
-from app.utils.serializers import serialize_audit
+from database.db import get_db
+from database.models import AuditRecord
+from utils.serializers import serialize_audit
 
 router = APIRouter(tags=["Module 8: Audit Trail & Immutable Ledger"])
 
