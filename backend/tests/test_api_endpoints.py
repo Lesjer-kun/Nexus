@@ -145,6 +145,31 @@ def test_governance_approval_updates_schedule(client):
     assert act3["progressPct"] == 100.0
 
 
+def test_approved_interruption_creates_risk_alert(client):
+    ingest_res = client.post("/api/events", json={
+        "text": "Concrete pouring for Block C started at 10, stopped at 1 because the batching plant failed.",
+        "input_mode": "text",
+        "reporter_id": "SUP-022",
+    })
+    assert ingest_res.status_code == 200
+    event = ingest_res.json()
+    event_id = int(event["id"])
+
+    approve_res = client.post(f"/api/events/{event_id}/governance", json={
+        "decision": "APPROVED",
+        "selected_activity_id": int(event["selectedActivityId"]),
+        "reviewer": "P. Sharma (Lead Project Planner)",
+        "planner_notes": "Approved batching plant interruption for risk evaluation.",
+    })
+    assert approve_res.status_code == 200
+
+    risk_res = client.post("/api/risk/evaluate", json={"project_id": 1, "event_ids": [event_id]})
+    assert risk_res.status_code == 200
+    risk_data = risk_res.json()
+    assert risk_data["count"] > 0
+    assert any(alert["type"] == "variance" for alert in risk_data["alerts"])
+
+
 def test_institutional_memory_search(client):
     res = client.post("/api/memory/search", json={
         "query": "Have we seen similar pipe spool erection delays and what were the causes?"

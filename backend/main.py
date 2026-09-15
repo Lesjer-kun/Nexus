@@ -84,7 +84,7 @@ app.include_router(governance.router, prefix="/api")
 app.include_router(evidence.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
 app.include_router(memory.router, prefix="/api")
-app.include_router(risk.router, prefix="/api")
+app.include_router(risk.router, prefix="/api/risk")
 
 # Also mount Routers without /api prefix for maximum client interoperability
 app.include_router(field_capture.router)
@@ -95,7 +95,7 @@ app.include_router(governance.router)
 app.include_router(evidence.router)
 app.include_router(audit.router)
 app.include_router(memory.router)
-app.include_router(risk.router)
+app.include_router(risk.router, prefix="/risk")
 
 
 @app.get("/health")

@@ -6,6 +6,7 @@ Endpoints:
   POST /api/risk/evaluate (and /risk/evaluate)
  """
 
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Depends
@@ -33,7 +34,7 @@ class RiskAlert(BaseModel):
     scheduledDaysBehind: Optional[int] = None
     relatedBlockerId: Optional[str] = None
     isResolved: bool = False
-    createdAt: str
+    createdAt: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     resolvedAt: Optional[str] = None
     resolvedBy: Optional[str] = None
 

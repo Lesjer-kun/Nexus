@@ -10,6 +10,8 @@ import { RiskAlertsScreen } from './components/risk/RiskAlertsScreen';
 import { InstitutionalMemoryScreen } from './components/memory/InstitutionalMemoryScreen';
 import { AuditTrailScreen } from './components/audit/AuditTrailScreen';
 import { MobileViewProvider, useMobileView } from './context/MobileViewContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { AccessibilityProvider } from './context/AccessibilityContext';
 import { apiClient } from './services/apiClient';
 import { ProjectInfo } from './types/nexus';
 

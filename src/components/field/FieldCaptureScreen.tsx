@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useFieldCapture } from '../../hooks/useFieldCapture';
 import { useMobileView } from '../../context/MobileViewContext';
 import { ConfidenceGauge } from '../common/ConfidenceGauge';
@@ -8,6 +8,7 @@ import { EvidenceCard } from '../common/EvidenceCard';
 import { ScreenHeader } from '../layout/ScreenHeader';
 import {
   Camera,
+  Smartphone,
   CheckCircle2,
   Clock,
   FileUp,
@@ -39,6 +40,7 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
     stopRecording,
     attachedEvidences,
     attachMockPhoto,
+    attachPhotoFile,
     removeEvidence,
     isProcessing,
     extractedPreview,
@@ -56,6 +58,65 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
   const [inputMode, setInputMode] = useState<'voice' | 'text' | 'document'>('voice');
   const [successBanner, setSuccessBanner] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const androidCameraInputRef = useRef<HTMLInputElement>(null);
+  const webcamVideoRef = useRef<HTMLVideoElement>(null);
+  const webcamStreamRef = useRef<MediaStream | null>(null);
+  const [isWebcamOpen, setIsWebcamOpen] = useState(false);
+  const [webcamError, setWebcamError] = useState('');
+
+  const stopWebcam = () => {
+    webcamStreamRef.current?.getTracks().forEach((track) => track.stop());
+    webcamStreamRef.current = null;
+    setIsWebcamOpen(false);
+  };
+
+  useEffect(() => stopWebcam, []);
+
+  const openWebcam = async () => {
+    setWebcamError('');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setWebcamError('Webcam capture is not supported by this browser.');
+      setIsWebcamOpen(true);
+      return;
+    }
+
+    try {
+      webcamStreamRef.current = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false,
+      });
+      setIsWebcamOpen(true);
+    } catch {
+      setWebcamError('Camera permission was denied or no webcam is available.');
+      setIsWebcamOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (isWebcamOpen && webcamVideoRef.current && webcamStreamRef.current) {
+      webcamVideoRef.current.srcObject = webcamStreamRef.current;
+    }
+  }, [isWebcamOpen]);
+
+  const captureWebcamPhoto = () => {
+    const video = webcamVideoRef.current;
+    if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (blob) attachPhotoFile(new File([blob], `webcam-${Date.now()}.jpg`, { type: 'image/jpeg' }), 'Computer webcam');
+      stopWebcam();
+    }, 'image/jpeg', 0.92);
+  };
+
+  const handleAndroidPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) attachPhotoFile(file, 'Android camera');
+    event.target.value = '';
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -314,12 +375,29 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
                 <button
                   id="attach-photo-button"
                   type="button"
-                  onClick={() => attachMockPhoto('Site Inspection Photo')}
+                  onClick={openWebcam}
                   className="inline-flex items-center gap-1 rounded-md border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink hover:border-ember/40"
                 >
                   <Camera className="h-3 w-3" />
-                  Photo
+                  Webcam
                 </button>
+                <button
+                  id="attach-android-camera-button"
+                  type="button"
+                  onClick={() => androidCameraInputRef.current?.click()}
+                  className="inline-flex items-center gap-1 rounded-md border border-line bg-white px-2.5 py-1 text-[11px] font-medium text-ink hover:border-ember/40"
+                >
+                  <Smartphone className="h-3 w-3" />
+                  Android camera
+                </button>
+                <input
+                  ref={androidCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleAndroidPhoto}
+                  className="hidden"
+                />
                 <button
                   id="attach-report-button"
                   type="button"
@@ -331,6 +409,26 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
                 </button>
               </div>
             </div>
+
+            {isWebcamOpen && (
+              <div className="rounded-lg border border-line bg-ink p-3 text-paper">
+                {webcamError ? (
+                  <p className="text-xs text-orange-200">{webcamError}</p>
+                ) : (
+                  <>
+                    <video ref={webcamVideoRef} autoPlay playsInline className="max-h-64 w-full rounded-md object-cover" />
+                    <div className="mt-2 flex justify-end gap-2">
+                      <button type="button" onClick={stopWebcam} className="rounded-md border border-paper/40 px-3 py-1.5 text-xs">
+                        Cancel
+                      </button>
+                      <button type="button" onClick={captureWebcamPhoto} className="rounded-md bg-ember px-3 py-1.5 text-xs font-semibold">
+                        Capture photo
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {attachedEvidences.length > 0 ? (
               <div className="grid grid-cols-1 gap-2">

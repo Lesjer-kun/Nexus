@@ -12,6 +12,7 @@ export interface UseFieldCaptureReturn {
   stopRecording: () => void;
   attachedEvidences: EvidenceItem[];
   attachMockPhoto: (scenario?: string) => void;
+  attachPhotoFile: (file: File, source: string) => void;
   removeEvidence: (id: string) => void;
   isProcessing: boolean;
   extractedPreview: ExecutionEvent | null;
@@ -191,8 +192,35 @@ const [isRecording, setIsRecording] = useState(false);
     setAttachedEvidences((prev) => [...prev, newEvidence]);
   }, []);
 
+  const attachPhotoFile = useCallback((file: File, source: string) => {
+    const newEvidence: EvidenceItem = {
+      id: `evid-${Date.now()}`,
+      eventId: '',
+      fileName: file.name || `IMG_${Date.now()}.jpg`,
+      fileType: 'photo',
+      fileUrl: URL.createObjectURL(file),
+      uploaderId: 'SUP-017',
+      uploaderName: 'Supervisor R. Bora',
+      timestamp: new Date().toISOString(),
+      gpsCoordinates: {
+        lat: 27.3482,
+        lng: 95.3219,
+        siteZone: 'Sector Line 24 Workfront',
+        accuracyMeters: 3.4,
+      },
+      metadataValid: true,
+      visualConsistencyScore: 1,
+      notes: `${source} image captured on the reporting device.`,
+    };
+    setAttachedEvidences((prev) => [...prev, newEvidence]);
+  }, []);
+
   const removeEvidence = useCallback((id: string) => {
-    setAttachedEvidences((prev) => prev.filter((e) => e.id !== id));
+    setAttachedEvidences((prev) => {
+      const evidence = prev.find((item) => item.id === id);
+      if (evidence?.fileUrl?.startsWith('blob:')) URL.revokeObjectURL(evidence.fileUrl);
+      return prev.filter((e) => e.id !== id);
+    });
   }, []);
 
   const submitReport = useCallback(async (inputMode: InputMode = 'voice'): Promise<ExecutionEvent | null> => {
@@ -246,6 +274,7 @@ const [isRecording, setIsRecording] = useState(false);
     stopRecording,
     attachedEvidences,
     attachMockPhoto,
+    attachPhotoFile,
     removeEvidence,
     isProcessing,
     extractedPreview,

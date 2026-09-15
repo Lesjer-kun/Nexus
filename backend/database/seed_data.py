@@ -64,7 +64,7 @@ def seed_database(db: Session):
             "is_critical_path": True,
             "dependencies": ["L6-CIV-001"],
             "status": "HALTED",
-            "variance_days": 1,
+            "variance_days": 0,
             "unit_of_measure": "m³",
             "planned_quantity": 50.0,
             "installed_quantity": 26.0,
