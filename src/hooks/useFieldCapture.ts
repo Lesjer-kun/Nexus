@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ExecutionEvent, EvidenceItem } from '../types/nexus';
+import { ExecutionEvent, EvidenceItem, InputMode } from '../types/nexus';
 import { apiClient } from '../services/apiClient';
 
 export interface UseFieldCaptureReturn {
@@ -15,15 +15,19 @@ export interface UseFieldCaptureReturn {
   removeEvidence: (id: string) => void;
   isProcessing: boolean;
   extractedPreview: ExecutionEvent | null;
-  submitReport: () => Promise<ExecutionEvent | null>;
+  submitReport: (inputMode?: InputMode) => Promise<ExecutionEvent | null>;
   resetCapture: () => void;
   applyPresetPrompt: (presetKey: 'pipe_spool' | 'concrete_pour' | 'pump_align') => void;
   recentEvents: ExecutionEvent[];
   refreshEvents: () => Promise<void>;
+  selectedDocumentFile: File | null;
+  setSelectedDocumentFile: (file: File | null) => void;
+  isUploadingDocument: boolean;
+  uploadAndSubmitDocument: () => Promise<ExecutionEvent | null>;
 }
 
 export function useFieldCapture(): UseFieldCaptureReturn {
-  const [isRecording, setIsRecording] = useState(false);
+const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [audioLevels, setAudioLevels] = useState<number[]>([15, 25, 45, 30, 20]);
   const [transcribedText, setTranscribedText] = useState('');
@@ -31,9 +35,13 @@ export function useFieldCapture(): UseFieldCaptureReturn {
   const [isProcessing, setIsProcessing] = useState(false);
   const [extractedPreview, setExtractedPreview] = useState<ExecutionEvent | null>(null);
   const [recentEvents, setRecentEvents] = useState<ExecutionEvent[]>([]);
+  const [replayInputMode, setReplayInputMode] = useState<InputMode>('voice');
+  const [isProcessingRAG, setIsProcessingRAG] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const animRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectedDocumentFile, setSelectedDocumentFile] = useState<File | null>(null);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
 
   const refreshEvents = useCallback(async () => {
     const list = await apiClient.getEvents();
@@ -187,14 +195,14 @@ export function useFieldCapture(): UseFieldCaptureReturn {
     setAttachedEvidences((prev) => prev.filter((e) => e.id !== id));
   }, []);
 
-  const submitReport = useCallback(async (): Promise<ExecutionEvent | null> => {
+  const submitReport = useCallback(async (inputMode: InputMode = 'voice'): Promise<ExecutionEvent | null> => {
     if (!transcribedText.trim()) return null;
 
     setIsProcessing(true);
     try {
       const event = await apiClient.simulateAIExtraction(
         transcribedText,
-        'voice',
+        inputMode,
         attachedEvidences
       );
       setExtractedPreview(event);
@@ -205,10 +213,25 @@ export function useFieldCapture(): UseFieldCaptureReturn {
     }
   }, [transcribedText, attachedEvidences, refreshEvents]);
 
+  const uploadAndSubmitDocument = useCallback(async (): Promise<ExecutionEvent | null> => {
+    if (!selectedDocumentFile) return null;
+
+    setIsUploadingDocument(true);
+    try {
+      const event = await apiClient.uploadDocument(selectedDocumentFile);
+      setExtractedPreview(event);
+      await refreshEvents();
+      return event;
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  }, [selectedDocumentFile, refreshEvents]);
+
   const resetCapture = useCallback(() => {
     setTranscribedText('');
     setAttachedEvidences([]);
     setExtractedPreview(null);
+    setSelectedDocumentFile(null);
     setRecordingDuration(0);
     setIsRecording(false);
   }, []);
@@ -231,5 +254,9 @@ export function useFieldCapture(): UseFieldCaptureReturn {
     applyPresetPrompt,
     recentEvents,
     refreshEvents,
+    selectedDocumentFile,
+    setSelectedDocumentFile,
+    isUploadingDocument,
+    uploadAndSubmitDocument,
   };
 }

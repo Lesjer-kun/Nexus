@@ -1,6 +1,6 @@
-import { Calendar, CheckSquare, Mic, ShieldAlert, Sparkles, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, Calendar, CheckSquare, Mic, ShieldAlert, Sparkles, type LucideIcon } from 'lucide-react';
 
-export type ActiveTabType = 'CAPTURE' | 'REVIEW' | 'SCHEDULE' | 'MEMORY' | 'AUDIT';
+export type ActiveTabType = 'CAPTURE' | 'REVIEW' | 'SCHEDULE' | 'RISKS' | 'MEMORY' | 'AUDIT';
 
 export const NAV_ITEMS: Array<{
   id: ActiveTabType;
@@ -11,6 +11,7 @@ export const NAV_ITEMS: Array<{
   { id: 'CAPTURE', label: 'Capture', hint: 'Field report', icon: Mic },
   { id: 'REVIEW', label: 'Review', hint: 'Governance queue', icon: CheckSquare },
   { id: 'SCHEDULE', label: 'Schedule', hint: 'Planned vs actual', icon: Calendar },
+  { id: 'RISKS', label: 'Risks', hint: 'Early warnings', icon: AlertTriangle },
   { id: 'MEMORY', label: 'Memory', hint: 'Verified history', icon: Sparkles },
   { id: 'AUDIT', label: 'Audit', hint: 'Immutable ledger', icon: ShieldAlert },
 ];

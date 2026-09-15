@@ -41,22 +41,21 @@ export function useScheduleLinking(): UseScheduleLinkingReturn {
       setPendingEvents(pending);
 
       // Keep selected event in sync
-      if (selectedEvent) {
-        const updated = all.find((e) => e.id === selectedEvent.id);
-        if (updated) setSelectedEvent(updated);
-        else if (pending.length > 0) setSelectedEvent(pending[0]);
-        else setSelectedEvent(null);
-      } else if (pending.length > 0) {
-        setSelectedEvent(pending[0]);
-      }
+      setSelectedEvent((current) => {
+        if (current) {
+          const updated = all.find((e) => e.id === current.id);
+          if (updated && updated.governanceStatus === 'PENDING_REVIEW') return updated;
+        }
+        return pending[0] || null;
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEvent]);
+  }, []);
 
   useEffect(() => {
     refreshQueue();
-  }, []);
+  }, [refreshQueue]);
 
   const clearMessage = useCallback(() => {
     setActionSuccessMessage(null);
@@ -79,10 +78,13 @@ export function useScheduleLinking(): UseScheduleLinkingReturn {
           notes,
           correctedFields
         );
+        setPendingEvents((current) => current.filter((event) => event.id !== eventId));
+        setSelectedEvent((current) => (current?.id === eventId ? null : current));
         setActionSuccessMessage(
           `Event ${eventId.toUpperCase()} successfully marked as ${decision}. L5/L6 schedule synchronized.`
         );
         await refreshQueue();
+        window.dispatchEvent(new CustomEvent('nexus:review-queue-changed'));
         return true;
       } catch (err) {
         console.error('Governance action failed', err);

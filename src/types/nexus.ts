@@ -56,11 +56,15 @@ export interface ScheduleActivity {
   installedQuantity?: number;
 }
 
+export type InputMode = 'voice' | 'text' | 'document';
+
+export type EvidenceFileType = 'photo' | 'report_pdf' | 'timesheet' | 'document' | 'video';
+
 export interface EvidenceItem {
   id: string;
   eventId: string;
   fileName: string;
-  fileType: 'photo' | 'report_pdf' | 'timesheet';
+  fileType: EvidenceFileType;
   fileUrl?: string;
   uploaderId: string;
   uploaderName: string;
@@ -72,8 +76,28 @@ export interface EvidenceItem {
     accuracyMeters: number;
   };
   metadataValid: boolean;
-  visualConsistencyScore: number; // 0.0 - 1.0 (checks if image matches piping, civil, etc.)
+  visualConsistencyScore: number;
   notes?: string;
+  evidenceHash?: string;
+}
+
+export interface RiskAlert {
+  id: string;
+  eventId: string;
+  eventNumber: string;
+  type: 'variance' | 'dependency' | 'blocker' | 'completion' | 'milestone';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  description: string;
+  activityId?: string;
+  activityWbsCode?: string;
+  scheduledDaysAhead?: number;
+  scheduledDaysBehind?: number;
+  relatedBlockerId?: string;
+  isResolved: boolean;
+  createdAt: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
 }
 
 export interface CandidateMatch {

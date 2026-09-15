@@ -30,14 +30,6 @@ def list_audit_logs(
     return [serialize_audit(r) for r in records]
 
 
-@router.get("/audit-logs/{id}")
-def get_audit_record(id: int, db: Session = Depends(get_db)):
-    record = db.query(AuditRecord).filter(AuditRecord.id == id).first()
-    if not record:
-        raise HTTPException(status_code=404, detail="Audit record not found")
-    return serialize_audit(record)
-
-
 @router.get("/audit-logs/event/{eventId}")
 def get_audit_records_for_event(eventId: str, db: Session = Depends(get_db)):
     records = (
@@ -48,3 +40,11 @@ def get_audit_records_for_event(eventId: str, db: Session = Depends(get_db)):
         .all()
     )
     return [serialize_audit(r) for r in records]
+
+
+@router.get("/audit-logs/{id}")
+def get_audit_record(id: int, db: Session = Depends(get_db)):
+    record = db.query(AuditRecord).filter(AuditRecord.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Audit record not found")
+    return serialize_audit(record)

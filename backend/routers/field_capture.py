@@ -6,14 +6,15 @@ Endpoints:
   GET /api/events/{id} (and /events/{id})
 """
 
-import random
 import hashlib
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
+import pandas as pd
+from io import BytesIO
 
 from config import settings
 from database.db import get_db
@@ -117,6 +118,9 @@ def ingest_field_event(req: IngestEventRequest, db: Session = Depends(get_db)):
     Capture -> Pre-process -> AI Extract -> Normalize -> Match -> Audit -> Save
     Creates a verified, structured Execution Event in the database.
     """
+    if req.input_mode not in ("voice", "text", "document"):
+        raise HTTPException(status_code=422, detail="input_mode must be one of: voice, text, document")
+
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Report text is required")
 
@@ -152,6 +156,9 @@ def ingest_field_event(req: IngestEventRequest, db: Session = Depends(get_db)):
     top_candidate = gov_decision.get("top_candidate")
     selected_act_id = int(top_candidate["activityId"]) if top_candidate else None
     matching_conf = gov_decision["mapping_confidence"]
+    governance_status = gov_decision["governance_status"]
+    if req.input_mode == "text" and governance_status == "NEEDS_CLARIFICATION":
+        governance_status = "PENDING_REVIEW"
 
     # 5. Evidence Provenance & Number Generation
     evidence_conf = calculate_evidence_confidence(req.evidence_list)
@@ -189,7 +196,7 @@ def ingest_field_event(req: IngestEventRequest, db: Session = Depends(get_db)):
         evidence_confidence=evidence_conf,
         candidate_matches=candidates,
         selected_activity_id=selected_act_id,
-        governance_status=gov_decision["governance_status"],
+        governance_status=governance_status,
 
         embedding=ev_embedding,
     )
@@ -279,3 +286,228 @@ def get_execution_event_by_id(id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Execution event {id} not found")
 
     return serialize_event(event)
+
+
+@router.post("/ingest/document")
+async def ingest_document(
+    project_id: int = Form(...),
+    reporter_id: str = Form("SUP-017"),
+    reporter_name: Optional[str] = Form("Supervisor R. Bora"),
+    reporter_role: Optional[str] = Form("Lead Field Supervisor"),
+    file: UploadFile = File(...),
+    evidence_list: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Ingest a document (PDF, XLSX, CSV, DOCX) as a field report.
+    Parses text from supported formats and runs it through the full ingestion pipeline.
+    """
+    import json as _json
+    evidence_list_parsed: List[Dict[str, Any]] = []
+    if evidence_list:
+        try:
+            evidence_list_parsed = _json.loads(evidence_list)
+        except (_json.JSONDecodeError, TypeError):
+            evidence_list_parsed = []
+
+    allowed_content_types = {
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/csv",
+        "text/plain",
+    }
+    if file.content_type not in allowed_content_types:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unsupported file type: {file.content_type}. Allowed: PDF, XLSX, CSV, DOCX, TXT",
+        )
+
+    content = await file.read()
+    if len(content) == 0:
+        raise HTTPException(status_code=422, detail="Uploaded file is empty")
+
+    filename_original = file.filename or "document_upload"
+    text_content = ""
+
+    try:
+        if file.content_type == "text/csv":
+            from io import StringIO
+            import csv as csv_module
+            reader = csv_module.DictReader(StringIO(content.decode("utf-8", errors="replace")))
+            rows = list(reader)
+            if rows:
+                text_content = " | ".join(
+                    " | ".join(f"{k}: {v}" for k, v in row.items()) for row in rows[:10]
+                )
+        elif file.content_type in {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"}:
+            from openpyxl import load_workbook
+            from io import BytesIO as BIO
+            workbook = load_workbook(filename=BIO(content), read_only=True, data_only=True)
+            sheet = workbook.active
+            rows_data = []
+            for row in sheet.iter_rows(values_only=True):
+                rows_data.append([str(cell) for cell in row if cell is not None])
+            text_content = "\n".join(" | ".join(r) for r in rows_data[:20])
+            workbook.close()
+        elif file.content_type == "application/pdf":
+            try:
+                import pdfplumber
+                from io import BytesIO as BIO
+                with pdfplumber.open(BIO(content)) as pdf:
+                    for page in pdf.pages[:10]:
+                        extracted = page.extract_text()
+                        if extracted:
+                            text_content += extracted + "\n"
+            except ImportError:
+                try:
+                    import PyPDF2
+                    from io import BytesIO as BIO
+                    reader = PyPDF2.PdfReader(BIO(content))
+                    for page in reader.pages[:10]:
+                        text_content += page.extract_text() + "\n"
+                except ImportError:
+                    raise ValueError("No PDF parsing library available. Install pdfplumber or PyPDF2.")
+        elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            from docx import Document
+            from io import BytesIO as BIO
+            doc = Document(BIO(content))
+            text_content = "\n".join(paragraph.text for paragraph in doc.paragraphs)
+        elif file.content_type == "text/plain":
+            text_content = content.decode("utf-8", errors="replace")
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Document parsing failed: {e}")
+
+    if not text_content.strip():
+        raise HTTPException(status_code=422, detail="No extractable text content found in document")
+
+    req = IngestEventRequest(
+        text=text_content,
+        input_mode="document",
+        source_filename=filename_original,
+        project_id=project_id,
+        reporter_id=reporter_id,
+        reporter_name=reporter_name or "Supervisor R. Bora",
+        reporter_role=reporter_role or "Lead Field Supervisor",
+        evidence_list=evidence_list_parsed,
+    )
+
+    if req.input_mode not in ("voice", "text", "document"):
+        raise HTTPException(status_code=422, detail="input_mode must be one of: voice, text, document")
+
+    if not req.text or not req.text.strip():
+        raise HTTPException(status_code=400, detail="Report text is required")
+
+    try:
+        extracted = extract_activity_from_text(
+            raw_text=req.text,
+            source_filename=req.source_filename or "",
+            input_mode=req.input_mode,
+            reporter_id=req.reporter_id,
+            reporter_name=req.reporter_name or "Supervisor",
+            reporter_role=req.reporter_role or "Lead Field Supervisor",
+        )
+    except ExtractionError as e:
+        raise HTTPException(status_code=422, detail=f"Extraction failed: {e}")
+
+    raw_dict = extracted.model_dump()
+    normalized_dict, _ = normalize_event_fields(raw_dict)
+
+    is_valid, errors, warnings, action = validate_event_dict(normalized_dict)
+    if action == "reject":
+        raise HTTPException(
+            status_code=422,
+            detail={"message": "Event validation rejected", "errors": errors}
+        )
+
+    candidates = find_top_candidates(db, req.project_id, normalized_dict, top_k=3)
+    gov_decision = evaluate_governance_decision(candidates)
+
+    top_candidate = gov_decision.get("top_candidate")
+    selected_act_id = int(top_candidate["activityId"]) if top_candidate else None
+    matching_conf = gov_decision["mapping_confidence"]
+
+    evidence_conf = calculate_evidence_confidence(req.evidence_list)
+    event_num = generate_unique_event_number(db)
+    ev_embedding = embed_text(f"{normalized_dict.get('activity')} {normalized_dict.get('location') or ''}")
+
+    ev = ExecutionEvent(
+        project_id=req.project_id,
+        event_number=event_num,
+        reporter=req.reporter_id,
+        reporter_name=req.reporter_name,
+        reporter_role=req.reporter_role,
+        raw_input=req.text,
+        input_mode=req.input_mode,
+        audio_duration_seconds=req.audio_duration_seconds,
+
+        event_type=normalized_dict.get("event_type"),
+        activity_description=normalized_dict.get("activity"),
+        location=normalized_dict.get("location"),
+        date=normalized_dict.get("date"),
+        status=normalized_dict.get("status"),
+        quantity=normalized_dict.get("quantity"),
+        quantity_unit=normalized_dict.get("unit"),
+        quantity_raw=normalized_dict.get("quantity_raw"),
+        blocker=normalized_dict.get("blocker"),
+        expected_resumption=normalized_dict.get("expected_resumption"),
+        start_time=normalized_dict.get("start_time"),
+        end_time=normalized_dict.get("end_time"),
+        notes=normalized_dict.get("notes") or f"Ingested via {req.input_mode} interface.",
+        source=req.source_filename,
+
+        matching_confidence=matching_conf,
+        evidence_confidence=evidence_conf,
+        candidate_matches=candidates,
+        selected_activity_id=selected_act_id,
+        governance_status=gov_decision["governance_status"],
+
+        embedding=ev_embedding,
+    )
+    db.add(ev)
+    db.flush()
+
+    for evid in req.evidence_list:
+        coords = evid.get("gpsCoordinates") or {}
+        evidence_rec = Evidence(
+            event_id=ev.id,
+            file_name=evid.get("fileName", "evidence.jpg"),
+            file_type=evid.get("fileType", "report_pdf"),
+            file_url=evid.get("fileUrl", ""),
+            uploader_id=evid.get("uploaderId", req.reporter_id),
+            uploader_name=evid.get("uploaderName", req.reporter_name or "Supervisor"),
+            gps_lat=coords.get("lat"),
+            gps_lng=coords.get("lng"),
+            site_zone=coords.get("siteZone"),
+            accuracy_meters=coords.get("accuracyMeters", 3.0),
+            metadata_valid=evid.get("metadataValid", True),
+            visual_consistency_score=evid.get("visualConsistencyScore", 0.92),
+            notes=evid.get("notes", ""),
+        )
+        db.add(evidence_rec)
+
+    evidence_hash = hashlib.sha256(f"{ev.event_number}:{req.text}:{datetime.now(timezone.utc).isoformat()}".encode()).hexdigest()
+    audit_rec = AuditRecord(
+        entity_type="ExecutionEvent",
+        entity_id=ev.event_number,
+        actor_id=req.reporter_id,
+        actor_name=req.reporter_name or "Supervisor",
+        actor_role="Field Submission",
+        action="INGEST_DOCUMENT_REPORT",
+        before_state=None,
+        after_state={
+            "rawInput": req.text,
+            "matchedActivity": top_candidate.get("wbsCode") if top_candidate else "UNASSIGNED",
+            "confidence": matching_conf,
+            "governanceStatus": ev.governance_status,
+        },
+        rationale=f"Document report ingested. Matched to {top_candidate.get('wbsCode') if top_candidate else 'None'} with {int(matching_conf*100)}% confidence.",
+        evidence_hash=f"sha256:{evidence_hash[:32]}",
+    )
+    db.add(audit_rec)
+
+    db.commit()
+    db.refresh(ev)
+
+    return serialize_event(ev)

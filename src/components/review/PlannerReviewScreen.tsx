@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useScheduleLinking } from '../../hooks/useScheduleLinking';
+import { apiClient } from '../../services/apiClient';
 import { useMobileView } from '../../context/MobileViewContext';
 import { ConfidenceGauge } from '../common/ConfidenceGauge';
 import { DisciplineBadge } from '../common/DisciplineBadge';
@@ -45,6 +46,8 @@ export const PlannerReviewScreen: React.FC = () => {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [clarificationQuery, setClarificationQuery] = useState('');
   const [isClarifyModalOpen, setIsClarifyModalOpen] = useState(false);
+  const [isEvidenceUploading, setIsEvidenceUploading] = useState(false);
+  const [evidenceMessage, setEvidenceMessage] = useState<string | null>(null);
 
   const handleSelectEvent = (ev: (typeof pendingEvents)[0]) => {
     selectEvent(ev);
@@ -90,6 +93,36 @@ export const PlannerReviewScreen: React.FC = () => {
     setIsClarifyModalOpen(false);
     setClarificationQuery('');
     if (isMobileView) setMobileTab('queue');
+  };
+
+  const handleEvidenceUpload = async (file: File) => {
+    if (!selectedEvent || !/^\d+$/.test(selectedEvent.id)) {
+      setEvidenceMessage('Evidence upload requires a live backend event ID.');
+      return;
+    }
+
+    setIsEvidenceUploading(true);
+    setEvidenceMessage(null);
+    try {
+      const fileType = file.type === 'application/pdf' ? 'report_pdf' : 'photo';
+      const uploaded = await apiClient.uploadEvidence(
+        file,
+        Number(selectedEvent.id),
+        'PLN-003',
+        'Lead Project Planner',
+        fileType,
+        27.3482,
+        95.3219,
+        selectedEvent.candidateLocation || undefined,
+        'Uploaded during planner evidence review.',
+      );
+      const verified = await apiClient.verifyEvidence(Number(uploaded.id), true, uploaded.visualConsistencyScore, 'Planner verification completed.');
+      setEvidenceMessage(`Verified ${verified.fileName} · provenance score ${(verified.visualConsistencyScore * 100).toFixed(0)}%`);
+    } catch (error) {
+      setEvidenceMessage(error instanceof Error ? error.message : 'Evidence upload failed.');
+    } finally {
+      setIsEvidenceUploading(false);
+    }
   };
 
   if (isLoading) {
@@ -272,8 +305,26 @@ export const PlannerReviewScreen: React.FC = () => {
         <div className="space-y-2">
           <h4 className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-ink">
             <span>Evidence ({selectedEvent.evidenceList.length})</span>
-            <span className="font-normal normal-case tracking-normal text-muted">EXIF & hash checked</span>
+            <label className="cursor-pointer font-normal normal-case tracking-normal text-ember hover:text-ember-dark">
+              {isEvidenceUploading ? 'Uploading...' : 'Upload evidence'}
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                className="hidden"
+                disabled={isEvidenceUploading}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void handleEvidenceUpload(file);
+                  event.currentTarget.value = '';
+                }}
+              />
+            </label>
           </h4>
+          {evidenceMessage && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-[11px] text-emerald-900">
+              {evidenceMessage}
+            </div>
+          )}
           {selectedEvent.evidenceList.length > 0 ? (
             <div className={isMobileView ? 'flex flex-col space-y-2' : 'grid grid-cols-1 gap-2 md:grid-cols-2'}>
               {selectedEvent.evidenceList.map((evid) => (

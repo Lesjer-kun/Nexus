@@ -20,6 +20,7 @@ import {
   CandidateMatch,
   DisciplineType,
   EvidenceItem,
+  RiskAlert,
 } from '../types/nexus';
 import {
   mockProject,
@@ -43,6 +44,15 @@ class NexusHttpApiClient {
   private fallbackAuditLogs: AuditLogRecord[] = [...initialAuditLogs];
   private fallbackMemory: InstitutionalMemoryRecord[] = [...mockInstitutionalMemory];
 
+  async getBackendHealth(): Promise<boolean> {
+    try {
+      await this.request<{ status: string }>('/health');
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /**
    * Generic HTTP fetch wrapper with explicit error diagnostics.
    * If ENABLE_FALLBACK is false (strict dev mode), throws immediately to surface backend bugs.
@@ -55,11 +65,12 @@ class NexusHttpApiClient {
     try {
       const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
       const url = `${API_BASE_URL}${cleanEndpoint}`;
+      const isFormData = options?.body instanceof FormData;
       
       const res = await fetch(url, {
         headers: {
-          'Content-Type': 'application/json',
           Accept: 'application/json',
+          ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
           ...options?.headers,
         },
         ...options,
@@ -246,6 +257,84 @@ class NexusHttpApiClient {
   }
 
   // ==========================================
+  // Document Ingestion (Requirement 1)
+  // ==========================================
+  async uploadDocument(
+    file: File,
+    projectId: number = 1,
+    reporterId: string = 'SUP-017',
+    reporterName: string = 'Supervisor R. Bora',
+    reporterRole: string = 'Lead Field Supervisor',
+    evidenceList?: string,
+  ): Promise<ExecutionEvent> {
+    const formData = new FormData();
+    formData.append('project_id', String(projectId));
+    formData.append('reporter_id', reporterId);
+    formData.append('reporter_name', reporterName);
+    formData.append('reporter_role', reporterRole);
+    formData.append('file', file);
+    if (evidenceList) {
+      formData.append('evidence_list', evidenceList);
+    }
+
+    return await this.request<ExecutionEvent>('/ingest/document', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  // ==========================================
+  // Module 5: Evidence & Provenance (Requirement 3)
+  // ==========================================
+  async uploadEvidence(
+    file: File,
+    eventId: number,
+    uploaderId: string = 'SUP-017',
+    uploaderName: string = 'Supervisor',
+    fileType: string = 'photo',
+    gpsLat?: number,
+    gpsLng?: number,
+    siteZone?: string,
+    notes?: string,
+  ): Promise<EvidenceItem> {
+    const formData = new FormData();
+    formData.append('event_id', String(eventId));
+    formData.append('uploader_id', uploaderId);
+    formData.append('uploader_name', uploaderName);
+    formData.append('file_type', fileType);
+    formData.append('file', file);
+    if (gpsLat !== undefined) formData.append('gps_lat', String(gpsLat));
+    if (gpsLng !== undefined) formData.append('gps_lng', String(gpsLng));
+    if (siteZone) formData.append('site_zone', siteZone);
+    if (notes) formData.append('notes', notes);
+
+    return await this.request<EvidenceItem>('/evidence/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async getEvidence(id: number): Promise<EvidenceItem> {
+    return await this.request<EvidenceItem>(`/evidence/${id}`);
+  }
+
+  async verifyEvidence(
+    id: number,
+    isValid: boolean = true,
+    consistencyScore: number = 0.95,
+    notes?: string,
+  ): Promise<EvidenceItem> {
+    return await this.request<EvidenceItem>(`/evidence/${id}/verify`, {
+      method: 'POST',
+      body: JSON.stringify({
+        is_valid: isValid,
+        consistency_score: consistencyScore,
+        notes,
+      }),
+    });
+  }
+
+  // ==========================================
   // Module 6 & 7: Governance & Schedule Updates
   // ==========================================
   async submitGovernanceDecision(
@@ -302,6 +391,31 @@ class NexusHttpApiClient {
         groundedFactsCount: this.fallbackMemory.length,
         retrievedCitations: this.fallbackMemory.slice(0, 3),
       };
+    }
+  }
+
+  // ==========================================
+  // Module 10: Risk & Alert Service
+  // ==========================================
+  async getRiskAlerts(projectId: number = 1): Promise<RiskAlert[]> {
+    try {
+      return await this.request<RiskAlert[]>(`/risk/alerts?project_id=${projectId}`);
+    } catch {
+      return [];
+    }
+  }
+
+  async evaluateRisk(
+    projectId: number = 1,
+    eventIds?: number[],
+  ): Promise<{ alerts: RiskAlert[]; count: number }> {
+    try {
+      return await this.request<{ alerts: RiskAlert[]; count: number }>('/risk/evaluate', {
+        method: 'POST',
+        body: JSON.stringify({ project_id: projectId, event_ids: eventIds }),
+      });
+    } catch {
+      return { alerts: [], count: 0 };
     }
   }
 

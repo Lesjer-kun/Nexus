@@ -27,6 +27,7 @@ from routers import (
     evidence,
     audit,
     memory,
+    risk,
 )
 
 logging.basicConfig(
@@ -83,6 +84,7 @@ app.include_router(governance.router, prefix="/api")
 app.include_router(evidence.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
 app.include_router(memory.router, prefix="/api")
+app.include_router(risk.router, prefix="/api")
 
 # Also mount Routers without /api prefix for maximum client interoperability
 app.include_router(field_capture.router)
@@ -93,6 +95,7 @@ app.include_router(governance.router)
 app.include_router(evidence.router)
 app.include_router(audit.router)
 app.include_router(memory.router)
+app.include_router(risk.router)
 
 
 @app.get("/health")
@@ -123,5 +126,6 @@ def root():
             "7. Authoritative Schedule Management (/api/activities/{id}/variance)",
             "8. Audit Trail & Immutable Ledger (/api/audit-logs)",
             "9. Institutional Memory & RAG Service (/api/memory/search, /api/memory/records)",
+            "10. Risk & Alert Service (/api/risk/alerts, /api/risk/evaluate)",
         ],
     }

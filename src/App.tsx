@@ -6,6 +6,7 @@ import { MobileDeviceWrapper } from './components/mobile/MobileDeviceWrapper';
 import { FieldCaptureScreen } from './components/field/FieldCaptureScreen';
 import { PlannerReviewScreen } from './components/review/PlannerReviewScreen';
 import { ScheduleTrackingScreen } from './components/schedule/ScheduleTrackingScreen';
+import { RiskAlertsScreen } from './components/risk/RiskAlertsScreen';
 import { InstitutionalMemoryScreen } from './components/memory/InstitutionalMemoryScreen';
 import { AuditTrailScreen } from './components/audit/AuditTrailScreen';
 import { MobileViewProvider, useMobileView } from './context/MobileViewContext';
@@ -22,6 +23,7 @@ function Workspace({
   project,
   pendingReviewCount,
   fetchProjectAndCounts,
+  backendOnline,
 }: {
   activeRole: 'SUPERVISOR' | 'PLANNER';
   setActiveRole: (role: 'SUPERVISOR' | 'PLANNER') => void;
@@ -32,6 +34,7 @@ function Workspace({
   project: ProjectInfo | null;
   pendingReviewCount: number;
   fetchProjectAndCounts: () => Promise<void>;
+  backendOnline: boolean | null;
 }) {
   const { isMobileView } = useMobileView();
 
@@ -51,6 +54,8 @@ function Workspace({
         return <PlannerReviewScreen />;
       case 'SCHEDULE':
         return <ScheduleTrackingScreen />;
+      case 'RISKS':
+        return <RiskAlertsScreen />;
       case 'MEMORY':
         return <InstitutionalMemoryScreen />;
       case 'AUDIT':
@@ -72,6 +77,7 @@ function Workspace({
         isMobileFrame={isMobileFrame}
         setIsMobileFrame={setIsMobileFrame}
         pendingReviewCount={pendingReviewCount}
+        backendOnline={backendOnline}
       />
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -107,8 +113,10 @@ export default function App() {
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
   const [project, setProject] = useState<ProjectInfo | null>(null);
   const [pendingReviewCount, setPendingReviewCount] = useState<number>(2);
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
 
   const fetchProjectAndCounts = useCallback(async () => {
+    setBackendOnline(await apiClient.getBackendHealth());
     try {
       const proj = await apiClient.getProject();
       setProject(proj);
@@ -123,6 +131,15 @@ export default function App() {
     fetchProjectAndCounts();
   }, [fetchProjectAndCounts]);
 
+  useEffect(() => {
+    const handleReviewQueueChanged = () => {
+      fetchProjectAndCounts();
+    };
+
+    window.addEventListener('nexus:review-queue-changed', handleReviewQueueChanged);
+    return () => window.removeEventListener('nexus:review-queue-changed', handleReviewQueueChanged);
+  }, [fetchProjectAndCounts]);
+
   return (
     <MobileViewProvider isMobileFrame={isMobileFrame} setIsMobileFrame={setIsMobileFrame}>
       <Workspace
@@ -135,6 +152,7 @@ export default function App() {
         project={project}
         pendingReviewCount={pendingReviewCount}
         fetchProjectAndCounts={fetchProjectAndCounts}
+        backendOnline={backendOnline}
       />
     </MobileViewProvider>
   );

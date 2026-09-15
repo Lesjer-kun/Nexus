@@ -9,6 +9,7 @@ interface TopHeaderProps {
   isMobileFrame: boolean;
   setIsMobileFrame: (val: boolean) => void;
   pendingReviewCount: number;
+  backendOnline: boolean | null;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -18,6 +19,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   isMobileFrame,
   setIsMobileFrame,
   pendingReviewCount,
+  backendOnline,
 }) => {
   return (
     <header
@@ -43,16 +45,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 rounded-full border border-emerald-800/70 bg-emerald-950/50 px-2 py-0.5 text-[10px] font-medium text-emerald-300 sm:hidden">
-            <Radio className="h-2.5 w-2.5 animate-pulse" />
-            <span>Live</span>
+          <div className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium sm:hidden ${backendOnline === false ? 'border-amber-800/70 bg-amber-950/50 text-amber-300' : 'border-emerald-800/70 bg-emerald-950/50 text-emerald-300'}`}>
+            <Radio className="h-2.5 w-2.5" />
+            <span>{backendOnline === false ? 'Demo fallback' : 'Live'}</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:justify-end">
-          <div className="hidden items-center gap-1.5 rounded-full border border-emerald-800/70 bg-emerald-950/40 px-2.5 py-1 text-[11px] font-medium text-emerald-300 sm:flex">
-            <Radio className="h-3 w-3 animate-pulse" />
-            <span>Sync active</span>
+          <div className={`hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium sm:flex ${backendOnline === false ? 'border-amber-800/70 bg-amber-950/40 text-amber-300' : 'border-emerald-800/70 bg-emerald-950/40 text-emerald-300'}`}>
+            <Radio className="h-3 w-3" />
+            <span>{backendOnline === false ? 'Demo fallback' : 'Backend connected'}</span>
           </div>
 
           <div className="flex items-center rounded-lg border border-ink-3 bg-ink-2 p-0.5 text-xs">

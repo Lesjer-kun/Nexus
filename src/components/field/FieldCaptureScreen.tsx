@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useFieldCapture } from '../../hooks/useFieldCapture';
 import { useMobileView } from '../../context/MobileViewContext';
 import { ConfidenceGauge } from '../common/ConfidenceGauge';
@@ -11,11 +11,13 @@ import {
   CheckCircle2,
   Clock,
   FileUp,
+  FileText,
   Mic,
   MicOff,
   Radio,
   RotateCcw,
   Send,
+  Upload,
 } from 'lucide-react';
 
 interface FieldCaptureScreenProps {
@@ -44,14 +46,34 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
     resetCapture,
     applyPresetPrompt,
     recentEvents,
+    selectedDocumentFile,
+    setSelectedDocumentFile,
+    isUploadingDocument,
+    uploadAndSubmitDocument,
   } = useFieldCapture();
 
   const { isMobileView } = useMobileView();
-  const [inputMode, setInputMode] = useState<'voice' | 'text'>('voice');
+  const [inputMode, setInputMode] = useState<'voice' | 'text' | 'document'>('voice');
   const [successBanner, setSuccessBanner] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedDocumentFile(file);
+  };
 
   const handleSubmit = async () => {
-    const res = await submitReport();
+    if (inputMode === 'document') {
+      const res = await uploadAndSubmitDocument();
+      if (res) {
+        setSuccessBanner(true);
+        if (onEventSubmitted) onEventSubmitted();
+        setTimeout(() => setSuccessBanner(false), 5000);
+      }
+      return;
+    }
+
+    const res = await submitReport(inputMode);
     if (res) {
       setSuccessBanner(true);
       if (onEventSubmitted) onEventSubmitted();
@@ -169,6 +191,15 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
               >
                 Text
               </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('document')}
+                className={`rounded px-2.5 py-1 font-medium transition-colors ${
+                  inputMode === 'document' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'
+                }`}
+              >
+                Document
+              </button>
             </div>
           </div>
 
@@ -211,10 +242,41 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
             </div>
           )}
 
+          {inputMode === 'document' && (
+            <div className="flex flex-col items-center justify-center space-y-3 rounded-xl bg-ink p-5 text-paper">
+              <div className="flex items-center gap-2">
+                <FileUp className="h-5 w-5" />
+                <span className="text-sm font-semibold">
+                  {selectedDocumentFile ? selectedDocumentFile.name : 'Select a document'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-md border border-paper bg-paper px-3 py-1.5 text-xs font-medium text-ink hover:bg-orange-50 disabled:opacity-50"
+                disabled={isUploadingDocument}
+              >
+                {isUploadingDocument ? 'Uploading...' : 'Choose PDF, XLSX, CSV, or DOCX'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.xlsx,.xls,.csv,.docx,.txt"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {selectedDocumentFile && (
+                <div className="text-xs text-paper/80">
+                  File: {selectedDocumentFile.name} ({(selectedDocumentFile.size / 1024).toFixed(1)} KB)
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1">
             <div className="flex items-center justify-between text-xs font-medium text-ink-2">
               <span>Statement / transcription</span>
-              {transcribedText && (
+              {(transcribedText || inputMode === 'document') && (
                 <button
                   type="button"
                   onClick={resetCapture}
@@ -224,14 +286,22 @@ export const FieldCaptureScreen: React.FC<FieldCaptureScreenProps> = ({
                 </button>
               )}
             </div>
-            <textarea
-              id="field-report-textarea"
-              value={transcribedText}
-              onChange={(e) => setTranscribedText(e.target.value)}
-              placeholder="e.g., We finished erecting the pipe spools on Line 24 around 3 PM today. Flange torqued."
-              rows={3}
-              className="w-full rounded-lg border border-line bg-white p-2.5 text-xs text-ink placeholder:text-muted/70 focus:border-ember focus:outline-none focus:ring-2 focus:ring-ember/30"
-            />
+            {inputMode === 'document' ? (
+              <div className="rounded-lg border border-line bg-paper p-2.5 text-xs text-ink-2">
+                {selectedDocumentFile
+                  ? `Document selected: ${selectedDocumentFile.name}. Upload to extract content.`
+                  : 'Select a document to process.'}
+              </div>
+            ) : (
+              <textarea
+                id="field-report-textarea"
+                value={transcribedText}
+                onChange={(e) => setTranscribedText(e.target.value)}
+                placeholder="e.g., We finished erecting the pipe spools on Line 24 around 3 PM today. Flange torqued."
+                rows={3}
+                className="w-full rounded-lg border border-line bg-white p-2.5 text-xs text-ink placeholder:text-muted/70 focus:border-ember focus:outline-none focus:ring-2 focus:ring-ember/30"
+              />
+            )}
           </div>
 
           <div className="space-y-2 border-t border-line pt-3">
