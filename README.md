@@ -1,84 +1,104 @@
-## Prototype usage
+# 🚀 NEXUS - Infrastructure Project Governance System
 
-This project is the NEXUS prototype in `Nexus`. The app is built as a full UI with a backend API, and the main entry flow is defined in `App.tsx` and `FieldCaptureScreen.tsx`.
-
-### 1) Start the backend
-The backend is a FastAPI app started from `main.py`. It exposes endpoints like health, events, matches, reviews, risk, and memory.
-
-Use:
-
-```bash
-cd d:\Coding\Current-working\Nexus\backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-The frontend expects the API at http://localhost:8000/api by default, as shown in `apiClient.ts`.
-
-### 2) Start the frontend
-The front-end is a Vite React app. The scripts are in `package.json`:
-
-```bash
-cd d:\Coding\Current-working\Nexus
-npm install
-npm run dev
-```
-
-This uses Vite and runs on port 3000 per the script in `package.json`.
-
-### 3) Use the app
-Once both are running:
-
-- Open the frontend in the browser at http://localhost:3000
-- Switch between Supervisor and Planner roles from the top header
-- Use the field capture screen to:
-  - enter voice, text, or document-based progress updates
-  - attach evidence
-  - submit a site report
-- Route events to Planner Review
-- Review schedule updates, risk alerts, memory records, and audit trail
-- The app is designed to simulate a construction progress pipeline: capture → extract → match → review → verify
-
-The UI includes the key modules:
-- Field Capture
-- Planner Review
-- Schedule Tracking
-- Risk Alerts
-- Institutional Memory
-- Audit Trail
-
-Those screens are wired in `App.tsx`.
+NEXUS is an intelligent, AI-powered field-to-schedule governance workflow platform designed specifically for large-scale infrastructure and construction projects. It streamlines progress reporting, automates risk detection, and bridges the gap between on-site execution and high-level project planning.
 
 ---
 
-## Tech stack used
+## ✨ Features
+
+- **Field Capture (AI-Powered)**: Field supervisors can submit progress updates via voice, text, or document uploads. AI automatically extracts the intent (completion, delay, interruption) and matches it to scheduled activities.
+- **Evidence Collection**: Attach photos, videos, or documents directly to field events. Visual consistency checks act as a layer of verification.
+- **Planner Review & Governance**: Planners review AI-matched events, verifying field reports against the baseline schedule before officially committing them.
+- **Risk Alerts**: Proactive identification of delays or blockers that could cascade through the project timeline.
+- **Institutional Memory (RAG)**: A retrieval-augmented generation (RAG) system to query historical execution patterns, risk factors, and past project data.
+- **Immutable Audit Trail**: Transparent tracking of every action, approval, and modification for compliance and accountability.
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- React + TypeScript
-- Vite
-- Tailwind CSS
-- Lucide icons
-- Motion/animation library
-
-Evidence:
-- `package.json`
-- `App.tsx`
+- **Framework**: React 19 + TypeScript, powered by Vite
+- **Styling**: Tailwind CSS for responsive, modern UI
+- **Icons & Animation**: Lucide React, Framer Motion (via `motion`)
+- **Deployment**: Vercel
 
 ### Backend
-- Python
-- FastAPI
-- SQLAlchemy
-- PostgreSQL
-- pgvector
+- **Framework**: Python 3, FastAPI
+- **Database**: PostgreSQL with `pgvector` for vector similarity search
+- **ORM**: SQLAlchemy
+- **AI/LLM Integration**: Gemini, OpenAI, Anthropic, or VoyageAI for intelligent NLP extraction, text matching, and RAG.
 
-### AI / intelligence layer
-- AI extraction and matching capabilities are included via Gemini/OpenAI/Anthropic/VoyageAI libraries
-- The app is deliberately using a hybrid pattern: AI helps interpret field input, but deterministic logic governs project state and approvals
+---
 
-### Supporting data tooling
-- Pandas, OpenPyXL, PDF parsing, Pillow, NumPy
-- Used for document ingestion and structured data handling
+## 🏗️ Local Development Setup
 
-> In short: this prototype is a React frontend with a FastAPI backend, backed by PostgreSQL/pgvector and AI-powered extraction/matching, designed to simulate a real field-to-schedule governance workflow for infrastructure projects.
+To run NEXUS locally, you will need to start both the FastAPI backend and the React frontend.
+
+### 1. Backend Setup (FastAPI)
+
+The backend handles the AI extraction, database operations, and core business logic.
+
+```bash
+cd backend
+
+# Create and activate a virtual environment
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Mac/Linux:
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the development server
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+*By default, the backend API runs at `http://localhost:8000/api`.*
+
+### 2. Frontend Setup (React / Vite)
+
+The frontend expects the API to be running on port 8000.
+
+```bash
+# Return to the root directory
+# Make sure you are in the NEXUS root folder
+
+# Install Node dependencies
+npm install
+
+# Start the Vite development server
+npm run dev
+```
+
+*The frontend will be available at `http://localhost:3000` (or the port specified by Vite).*
+
+---
+
+## 💡 How to Use the App
+
+NEXUS uses a role-based workflow. You can toggle between roles in the top navigation header:
+
+1. **Supervisor Role**:
+   - Navigate to the **Field Capture** screen.
+   - Enter a progress update (e.g., "Zone B foundation is completed").
+   - Attach evidence (photos, documents) and submit the report.
+2. **Planner Role**:
+   - Navigate to the **Planner Review** screen.
+   - Review pending events generated by Supervisors.
+   - Verify the AI's schedule matching, make corrections if necessary, and approve or reject the update.
+3. **Tracking & Analysis**:
+   - Check the **Schedule Tracking** tab to see real-time updates to the project baseline.
+   - Monitor the **Risk Alerts** for potential downstream delays.
+   - Use the **Institutional Memory** search to query historical data and past performance records.
+
+---
+
+## ☁️ Deployment
+
+The frontend of this project is fully configured for deployment on **Vercel**. 
+The `vercel.json` file is included in the root directory to handle API rewrites and frontend routing.
+
+*Note: The backend requires a dedicated Python hosting environment (such as Render, Heroku, or AWS) and a PostgreSQL database with pgvector enabled.*
